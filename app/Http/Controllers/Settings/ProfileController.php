@@ -31,13 +31,19 @@ final class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        if ($user === null) {
+            return redirect()->route('login');
         }
 
-        $request->user()->save();
+        $user->fill($request->validated());
+
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
+        }
+
+        $user->save();
 
         return to_route('profile.edit');
     }
@@ -52,6 +58,10 @@ final class ProfileController extends Controller
         ]);
 
         $user = $request->user();
+
+        if ($user === null) {
+            return redirect()->route('login');
+        }
 
         Auth::logout();
 

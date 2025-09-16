@@ -58,11 +58,13 @@ const globalFilter = ref('')
 const selectedRating = ref<string>('all')
 const selectedStatus = ref<string>('all')
 const selectedType = ref<string>('all')
+const selectedState = ref<string>('all')
 
 // Collapsible states for filter sections
 const ratingOpen = ref(false)
 const statusOpen = ref(false)
 const typeOpen = ref(false)
+const stateOpen = ref(false)
 const pageOpen = ref(false)
 
 // Get unique values
@@ -79,6 +81,15 @@ const uniqueStatuses = computed(() => {
 const uniqueTypes = computed(() => {
     const types = Array.from(new Set(props.dealerships.map(d => d.type)))
     return types.filter(Boolean).sort()
+})
+
+const uniqueStates = computed(() => {
+    const states = Array.from(new Set(props.dealerships.map(d => {
+        // Extract state from location (assuming format like "City, State" or "City, ST")
+        const parts = d.location?.split(',') || []
+        return parts.length > 1 ? parts[parts.length - 1].trim() : null
+    })))
+    return states.filter(Boolean).sort()
 })
 
 // Column definitions
@@ -140,6 +151,18 @@ const columns: ColumnDef<Dealership>[] = [
             hidden: true,
         },
     },
+    // Hidden state column for filtering
+    {
+        id: 'state',
+        header: 'State',
+        accessorFn: (row) => {
+            const parts = row.location?.split(',') || []
+            return parts.length > 1 ? parts[parts.length - 1].trim() : ''
+        },
+        meta: {
+            hidden: true,
+        },
+    },
 ]
 
 // Create table instance
@@ -159,6 +182,7 @@ const table = useVueTable({
         },
         columnVisibility: {
             type: false, // Hide the type column
+            state: false, // Hide the state column
         },
     },
     state: {
@@ -202,14 +226,25 @@ const updateTypeFilter = (value: string) => {
     }
 }
 
+const updateStateFilter = (value: string) => {
+    selectedState.value = value
+    if (value === 'all') {
+        table.getColumn('state')?.setFilterValue(undefined)
+    } else {
+        table.getColumn('state')?.setFilterValue(value)
+    }
+}
+
 // Clear all filters
 const clearAllFilters = () => {
     selectedRating.value = 'all'
     selectedStatus.value = 'all'
     selectedType.value = 'all'
+    selectedState.value = 'all'
     table.getColumn('rating')?.setFilterValue(undefined)
     table.getColumn('status')?.setFilterValue(undefined)
     table.getColumn('type')?.setFilterValue(undefined)
+    table.getColumn('state')?.setFilterValue(undefined)
     globalFilter.value = ''
 }
 </script>
@@ -332,6 +367,39 @@ const clearAllFilters = () => {
                                     :class="selectedType === type ? 'font-medium bg-accent' : ''"
                                 >
                                     {{ type }}
+                                </button>
+                            </CollapsibleContent>
+                        </Collapsible>
+
+                        <!-- State Filter -->
+                        <Collapsible v-model:open="stateOpen">
+                            <CollapsibleTrigger class="flex w-full items-center justify-between rounded-md px-3 py-2 hover:bg-accent hover:text-accent-foreground">
+                                <span class="text-sm font-medium">State</span>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-xs text-muted-foreground">
+                                        {{ selectedState === 'all' ? 'All' : selectedState }}
+                                    </span>
+                                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" :class="stateOpen ? 'rotate-180' : ''" class="h-4 w-4 transition-transform">
+                                        <path d="m4.5 6.5 3 3 3-3" fill="currentColor"/>
+                                    </svg>
+                                </div>
+                            </CollapsibleTrigger>
+                            <CollapsibleContent class="space-y-1 px-3 pb-2">
+                                <button
+                                    @click="updateStateFilter('all')"
+                                    class="w-full rounded-sm px-2 py-1 text-left text-sm hover:bg-accent hover:text-accent-foreground"
+                                    :class="selectedState === 'all' ? 'font-medium bg-accent' : ''"
+                                >
+                                    All states
+                                </button>
+                                <button
+                                    v-for="state in uniqueStates"
+                                    :key="state"
+                                    @click="updateStateFilter(state)"
+                                    class="w-full rounded-sm px-2 py-1 text-left text-sm hover:bg-accent hover:text-accent-foreground"
+                                    :class="selectedState === state ? 'font-medium bg-accent' : ''"
+                                >
+                                    {{ state }}
                                 </button>
                             </CollapsibleContent>
                         </Collapsible>

@@ -27,7 +27,6 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
     DropdownMenuSub,
@@ -58,6 +57,7 @@ const globalFilter = ref('')
 // Filter states
 const selectedRating = ref<string>('all')
 const selectedStatus = ref<string>('all')
+const selectedType = ref<string>('all')
 
 // Get unique values
 const uniqueRatings = computed(() => {
@@ -68,6 +68,11 @@ const uniqueRatings = computed(() => {
 const uniqueStatuses = computed(() => {
     const statuses = Array.from(new Set(props.dealerships.map(d => d.status)))
     return statuses.filter(Boolean).sort()
+})
+
+const uniqueTypes = computed(() => {
+    const types = Array.from(new Set(props.dealerships.map(d => d.type)))
+    return types.filter(Boolean).sort()
 })
 
 // Column definitions
@@ -83,6 +88,7 @@ const columns: ColumnDef<Dealership>[] = [
     {
         accessorKey: 'phone',
         header: 'Phone',
+        enableSorting: false,
     },
     {
         accessorKey: 'status',
@@ -120,6 +126,14 @@ const columns: ColumnDef<Dealership>[] = [
             }, rating)
         },
     },
+    // Hidden type column for filtering
+    {
+        accessorKey: 'type',
+        header: 'Type',
+        meta: {
+            hidden: true,
+        },
+    },
 ]
 
 // Create table instance
@@ -136,6 +150,9 @@ const table = useVueTable({
     initialState: {
         pagination: {
             pageSize: 25,
+        },
+        columnVisibility: {
+            type: false, // Hide the type column
         },
     },
     state: {
@@ -170,12 +187,23 @@ const updateStatusFilter = (value: string) => {
     }
 }
 
+const updateTypeFilter = (value: string) => {
+    selectedType.value = value
+    if (value === 'all') {
+        table.getColumn('type')?.setFilterValue(undefined)
+    } else {
+        table.getColumn('type')?.setFilterValue(value)
+    }
+}
+
 // Clear all filters
 const clearAllFilters = () => {
     selectedRating.value = 'all'
     selectedStatus.value = 'all'
+    selectedType.value = 'all'
     table.getColumn('rating')?.setFilterValue(undefined)
     table.getColumn('status')?.setFilterValue(undefined)
+    table.getColumn('type')?.setFilterValue(undefined)
     globalFilter.value = ''
 }
 </script>
@@ -208,14 +236,14 @@ const clearAllFilters = () => {
                             <DropdownMenuSubTrigger>
                                 <span>Rating</span>
                                 <span class="ml-auto text-xs text-muted-foreground">
-                    {{ selectedRating === 'all' ? 'All' : selectedRating }}
-                  </span>
+                                    {{ selectedRating === 'all' ? 'All' : selectedRating }}
+                                </span>
                             </DropdownMenuSubTrigger>
                             <DropdownMenuSubContent>
                                 <DropdownMenuItem @click="updateRatingFilter('all')">
-                    <span :class="selectedRating === 'all' ? 'font-medium' : ''">
-                      All ratings
-                    </span>
+                                    <span :class="selectedRating === 'all' ? 'font-medium' : ''">
+                                      All ratings
+                                    </span>
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
@@ -223,9 +251,9 @@ const clearAllFilters = () => {
                                     :key="rating"
                                     @click="updateRatingFilter(rating)"
                                 >
-                    <span :class="selectedRating === rating ? 'font-medium' : ''">
-                      {{ rating }}
-                    </span>
+                                    <span :class="selectedRating === rating ? 'font-medium' : ''">
+                                      {{ rating }}
+                                    </span>
                                 </DropdownMenuItem>
                             </DropdownMenuSubContent>
                         </DropdownMenuSub>
@@ -235,14 +263,14 @@ const clearAllFilters = () => {
                             <DropdownMenuSubTrigger>
                                 <span>Status</span>
                                 <span class="ml-auto text-xs text-muted-foreground">
-                    {{ selectedStatus === 'all' ? 'All' : selectedStatus }}
-                  </span>
+                                    {{ selectedStatus === 'all' ? 'All' : selectedStatus }}
+                                  </span>
                             </DropdownMenuSubTrigger>
                             <DropdownMenuSubContent>
                                 <DropdownMenuItem @click="updateStatusFilter('all')">
-                    <span :class="selectedStatus === 'all' ? 'font-medium' : ''">
-                      All statuses
-                    </span>
+                                    <span :class="selectedStatus === 'all' ? 'font-medium' : ''">
+                                      All statuses
+                                    </span>
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
@@ -250,9 +278,36 @@ const clearAllFilters = () => {
                                     :key="status"
                                     @click="updateStatusFilter(status)"
                                 >
-                    <span :class="selectedStatus === status ? 'font-medium' : ''">
-                      {{ status }}
-                    </span>
+                                    <span :class="selectedStatus === status ? 'font-medium' : ''">
+                                      {{ status }}
+                                    </span>
+                                </DropdownMenuItem>
+                            </DropdownMenuSubContent>
+                        </DropdownMenuSub>
+
+                        <!-- Type Filter -->
+                        <DropdownMenuSub>
+                            <DropdownMenuSubTrigger>
+                                <span>Type</span>
+                                <span class="ml-auto text-xs text-muted-foreground">
+                                    {{ selectedType === 'all' ? 'All' : selectedType }}
+                                  </span>
+                            </DropdownMenuSubTrigger>
+                            <DropdownMenuSubContent>
+                                <DropdownMenuItem @click="updateTypeFilter('all')">
+                                    <span :class="selectedType === 'all' ? 'font-medium' : ''">
+                                      All types
+                                    </span>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                    v-for="type in uniqueTypes"
+                                    :key="type"
+                                    @click="updateTypeFilter(type)"
+                                >
+                                    <span :class="selectedType === type ? 'font-medium' : ''">
+                                      {{ type }}
+                                    </span>
                                 </DropdownMenuItem>
                             </DropdownMenuSubContent>
                         </DropdownMenuSub>

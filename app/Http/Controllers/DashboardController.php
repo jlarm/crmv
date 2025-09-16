@@ -15,7 +15,7 @@ final class DashboardController extends Controller
     {
         return Inertia::render('Dashboard', [
             'dealerships' => DealershipResource::collection(
-                Dealership::select(['id', 'name', 'city', 'state', 'phone', 'status', 'rating'])->get()
+                Dealership::select(['id', 'name', 'city', 'state', 'phone', 'status', 'rating', 'type'])->get()
             ),
         ]);
     }

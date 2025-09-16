@@ -18,6 +18,7 @@ final class DealershipResource extends JsonResource
             'phone' => $this->phone,
             'status' => $this->status,
             'rating' => $this->rating,
+            'type' => $this->type,
         ];
     }
 }

@@ -15,6 +15,7 @@ defineProps<{
           phone: string;
           status: string;
           rating: string;
+          type: string;
       }>;
   }
 }>();

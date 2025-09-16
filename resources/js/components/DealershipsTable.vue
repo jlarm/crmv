@@ -24,15 +24,15 @@ import {
     TableRow,
 } from '@/components/ui/table'
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-    DropdownMenuSub,
-    DropdownMenuSubContent,
-    DropdownMenuSubTrigger,
-} from '@/components/ui/dropdown-menu'
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover'
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible'
 
 interface Dealership {
     id: number
@@ -58,6 +58,12 @@ const globalFilter = ref('')
 const selectedRating = ref<string>('all')
 const selectedStatus = ref<string>('all')
 const selectedType = ref<string>('all')
+
+// Collapsible states for filter sections
+const ratingOpen = ref(false)
+const statusOpen = ref(false)
+const typeOpen = ref(false)
+const pageOpen = ref(false)
 
 // Get unique values
 const uniqueRatings = computed(() => {
@@ -220,138 +226,171 @@ const clearAllFilters = () => {
                     class="max-w-sm"
                 />
 
-                <!-- Filters Dropdown -->
-                <DropdownMenu>
-                    <DropdownMenuTrigger as-child>
+                <!-- Filters Popover -->
+                <Popover>
+                    <PopoverTrigger as-child>
                         <Button variant="outline" class="ml-auto">
                             Filters
                             <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" class="ml-2 h-4 w-4">
                                 <path d="m4.5 6.5 3 3 3-3" fill="currentColor"/>
                             </svg>
                         </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" class="w-[200px]">
+                    </PopoverTrigger>
+                    <PopoverContent align="end" class="w-[240px] p-2">
                         <!-- Rating Filter -->
-                        <DropdownMenuSub>
-                            <DropdownMenuSubTrigger>
-                                <span>Rating</span>
-                                <span class="ml-auto text-xs text-muted-foreground">
-                                    {{ selectedRating === 'all' ? 'All' : selectedRating }}
-                                </span>
-                            </DropdownMenuSubTrigger>
-                            <DropdownMenuSubContent>
-                                <DropdownMenuItem @click="updateRatingFilter('all')">
-                                    <span :class="selectedRating === 'all' ? 'font-medium' : ''">
-                                      All ratings
+                        <Collapsible v-model:open="ratingOpen">
+                            <CollapsibleTrigger class="flex w-full items-center justify-between rounded-md px-3 py-2 hover:bg-accent hover:text-accent-foreground">
+                                <span class="text-sm font-medium">Rating</span>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-xs text-muted-foreground">
+                                        {{ selectedRating === 'all' ? 'All' : selectedRating }}
                                     </span>
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
+                                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" :class="ratingOpen ? 'rotate-180' : ''" class="h-4 w-4 transition-transform">
+                                        <path d="m4.5 6.5 3 3 3-3" fill="currentColor"/>
+                                    </svg>
+                                </div>
+                            </CollapsibleTrigger>
+                            <CollapsibleContent class="space-y-1 px-3 pb-2">
+                                <button
+                                    @click="updateRatingFilter('all')"
+                                    class="w-full rounded-sm px-2 py-1 text-left text-sm hover:bg-accent hover:text-accent-foreground"
+                                    :class="selectedRating === 'all' ? 'font-medium bg-accent' : ''"
+                                >
+                                    All ratings
+                                </button>
+                                <button
                                     v-for="rating in uniqueRatings"
                                     :key="rating"
                                     @click="updateRatingFilter(rating)"
+                                    class="w-full rounded-sm px-2 py-1 text-left text-sm hover:bg-accent hover:text-accent-foreground"
+                                    :class="selectedRating === rating ? 'font-medium bg-accent' : ''"
                                 >
-                                    <span :class="selectedRating === rating ? 'font-medium' : ''">
-                                      {{ rating }}
-                                    </span>
-                                </DropdownMenuItem>
-                            </DropdownMenuSubContent>
-                        </DropdownMenuSub>
+                                    {{ rating }}
+                                </button>
+                            </CollapsibleContent>
+                        </Collapsible>
 
                         <!-- Status Filter -->
-                        <DropdownMenuSub>
-                            <DropdownMenuSubTrigger>
-                                <span>Status</span>
-                                <span class="ml-auto text-xs text-muted-foreground">
-                                    {{ selectedStatus === 'all' ? 'All' : selectedStatus }}
-                                  </span>
-                            </DropdownMenuSubTrigger>
-                            <DropdownMenuSubContent>
-                                <DropdownMenuItem @click="updateStatusFilter('all')">
-                                    <span :class="selectedStatus === 'all' ? 'font-medium' : ''">
-                                      All statuses
+                        <Collapsible v-model:open="statusOpen">
+                            <CollapsibleTrigger class="flex w-full items-center justify-between rounded-md px-3 py-2 hover:bg-accent hover:text-accent-foreground">
+                                <span class="text-sm font-medium">Status</span>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-xs text-muted-foreground">
+                                        {{ selectedStatus === 'all' ? 'All' : selectedStatus }}
                                     </span>
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
+                                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" :class="statusOpen ? 'rotate-180' : ''" class="h-4 w-4 transition-transform">
+                                        <path d="m4.5 6.5 3 3 3-3" fill="currentColor"/>
+                                    </svg>
+                                </div>
+                            </CollapsibleTrigger>
+                            <CollapsibleContent class="space-y-1 px-3 pb-2">
+                                <button
+                                    @click="updateStatusFilter('all')"
+                                    class="w-full rounded-sm px-2 py-1 text-left text-sm hover:bg-accent hover:text-accent-foreground"
+                                    :class="selectedStatus === 'all' ? 'font-medium bg-accent' : ''"
+                                >
+                                    All statuses
+                                </button>
+                                <button
                                     v-for="status in uniqueStatuses"
                                     :key="status"
                                     @click="updateStatusFilter(status)"
+                                    class="w-full rounded-sm px-2 py-1 text-left text-sm hover:bg-accent hover:text-accent-foreground"
+                                    :class="selectedStatus === status ? 'font-medium bg-accent' : ''"
                                 >
-                                    <span :class="selectedStatus === status ? 'font-medium' : ''">
-                                      {{ status }}
-                                    </span>
-                                </DropdownMenuItem>
-                            </DropdownMenuSubContent>
-                        </DropdownMenuSub>
+                                    {{ status }}
+                                </button>
+                            </CollapsibleContent>
+                        </Collapsible>
 
                         <!-- Type Filter -->
-                        <DropdownMenuSub>
-                            <DropdownMenuSubTrigger>
-                                <span>Type</span>
-                                <span class="ml-auto text-xs text-muted-foreground">
-                                    {{ selectedType === 'all' ? 'All' : selectedType }}
-                                  </span>
-                            </DropdownMenuSubTrigger>
-                            <DropdownMenuSubContent>
-                                <DropdownMenuItem @click="updateTypeFilter('all')">
-                                    <span :class="selectedType === 'all' ? 'font-medium' : ''">
-                                      All types
+                        <Collapsible v-model:open="typeOpen">
+                            <CollapsibleTrigger class="flex w-full items-center justify-between rounded-md px-3 py-2 hover:bg-accent hover:text-accent-foreground">
+                                <span class="text-sm font-medium">Type</span>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-xs text-muted-foreground">
+                                        {{ selectedType === 'all' ? 'All' : selectedType }}
                                     </span>
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
+                                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" :class="typeOpen ? 'rotate-180' : ''" class="h-4 w-4 transition-transform">
+                                        <path d="m4.5 6.5 3 3 3-3" fill="currentColor"/>
+                                    </svg>
+                                </div>
+                            </CollapsibleTrigger>
+                            <CollapsibleContent class="space-y-1 px-3 pb-2">
+                                <button
+                                    @click="updateTypeFilter('all')"
+                                    class="w-full rounded-sm px-2 py-1 text-left text-sm hover:bg-accent hover:text-accent-foreground"
+                                    :class="selectedType === 'all' ? 'font-medium bg-accent' : ''"
+                                >
+                                    All types
+                                </button>
+                                <button
                                     v-for="type in uniqueTypes"
                                     :key="type"
                                     @click="updateTypeFilter(type)"
+                                    class="w-full rounded-sm px-2 py-1 text-left text-sm hover:bg-accent hover:text-accent-foreground"
+                                    :class="selectedType === type ? 'font-medium bg-accent' : ''"
                                 >
-                                    <span :class="selectedType === type ? 'font-medium' : ''">
-                                      {{ type }}
-                                    </span>
-                                </DropdownMenuItem>
-                            </DropdownMenuSubContent>
-                        </DropdownMenuSub>
+                                    {{ type }}
+                                </button>
+                            </CollapsibleContent>
+                        </Collapsible>
 
                         <!-- Rows per page -->
-                        <DropdownMenuSub>
-                            <DropdownMenuSubTrigger>
-                                <span>Rows per page</span>
-                                <span class="ml-auto text-xs text-muted-foreground">
-                    {{ table.getState().pagination.pageSize }}
-                  </span>
-                            </DropdownMenuSubTrigger>
-                            <DropdownMenuSubContent>
-                                <DropdownMenuItem @click="table.setPageSize(10)">
-                    <span :class="table.getState().pagination.pageSize === 10 ? 'font-medium' : ''">
-                      10
-                    </span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem @click="table.setPageSize(25)">
-                    <span :class="table.getState().pagination.pageSize === 25 ? 'font-medium' : ''">
-                      25
-                    </span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem @click="table.setPageSize(50)">
-                    <span :class="table.getState().pagination.pageSize === 50 ? 'font-medium' : ''">
-                      50
-                    </span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem @click="table.setPageSize(100)">
-                    <span :class="table.getState().pagination.pageSize === 100 ? 'font-medium' : ''">
-                      100
-                    </span>
-                                </DropdownMenuItem>
-                            </DropdownMenuSubContent>
-                        </DropdownMenuSub>
+                        <Collapsible v-model:open="pageOpen">
+                            <CollapsibleTrigger class="flex w-full items-center justify-between rounded-md px-3 py-2 hover:bg-accent hover:text-accent-foreground">
+                                <span class="text-sm font-medium">Per page</span>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-xs text-muted-foreground">
+                                        {{ table.getState().pagination.pageSize }}
+                                    </span>
+                                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" :class="pageOpen ? 'rotate-180' : ''" class="h-4 w-4 transition-transform">
+                                        <path d="m4.5 6.5 3 3 3-3" fill="currentColor"/>
+                                    </svg>
+                                </div>
+                            </CollapsibleTrigger>
+                            <CollapsibleContent class="space-y-1 px-3 pb-2">
+                                <button
+                                    @click="table.setPageSize(10)"
+                                    class="w-full rounded-sm px-2 py-1 text-left text-sm hover:bg-accent hover:text-accent-foreground"
+                                    :class="table.getState().pagination.pageSize === 10 ? 'font-medium bg-accent' : ''"
+                                >
+                                    10
+                                </button>
+                                <button
+                                    @click="table.setPageSize(25)"
+                                    class="w-full rounded-sm px-2 py-1 text-left text-sm hover:bg-accent hover:text-accent-foreground"
+                                    :class="table.getState().pagination.pageSize === 25 ? 'font-medium bg-accent' : ''"
+                                >
+                                    25
+                                </button>
+                                <button
+                                    @click="table.setPageSize(50)"
+                                    class="w-full rounded-sm px-2 py-1 text-left text-sm hover:bg-accent hover:text-accent-foreground"
+                                    :class="table.getState().pagination.pageSize === 50 ? 'font-medium bg-accent' : ''"
+                                >
+                                    50
+                                </button>
+                                <button
+                                    @click="table.setPageSize(100)"
+                                    class="w-full rounded-sm px-2 py-1 text-left text-sm hover:bg-accent hover:text-accent-foreground"
+                                    :class="table.getState().pagination.pageSize === 100 ? 'font-medium bg-accent' : ''"
+                                >
+                                    100
+                                </button>
+                            </CollapsibleContent>
+                        </Collapsible>
 
-                        <DropdownMenuSeparator />
-
-                        <!-- Clear All Filters -->
-                        <DropdownMenuItem @click="clearAllFilters">
-                            <span class="text-red-600 dark:text-red-400">Clear all filters</span>
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                        <div class="border-t pt-2 mt-2">
+                            <button
+                                @click="clearAllFilters"
+                                class="w-full rounded-sm px-2 py-2 text-left text-sm text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-950 dark:hover:text-red-300"
+                            >
+                                Clear all filters
+                            </button>
+                        </div>
+                    </PopoverContent>
+                </Popover>
             </div>
         </div>
 

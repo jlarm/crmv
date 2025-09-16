@@ -12,6 +12,7 @@ import {
     type SortingState,
 } from '@tanstack/vue-table'
 
+// Add these missing imports
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -23,30 +24,51 @@ import {
     TableRow,
 } from '@/components/ui/table'
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select'
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+    DropdownMenuSub,
+    DropdownMenuSubContent,
+    DropdownMenuSubTrigger,
+} from '@/components/ui/dropdown-menu'
 
 interface Dealership {
     id: number
     name: string
     location: string
     phone: string
+    email: string
     status: string
     rating: string
+    type: string
 }
 
 const props = defineProps<{
-    dealerships: Dealership[],
+    dealerships: Dealership[]
 }>()
 
-// Table state
+// Table state - make sure these are defined
 const sorting = ref<SortingState>([])
 const columnFilters = ref<ColumnFiltersState>([])
 const globalFilter = ref('')
+
+// Filter states
+const selectedRating = ref<string>('all')
+const selectedStatus = ref<string>('all')
+
+// Get unique values
+const uniqueRatings = computed(() => {
+    const ratings = Array.from(new Set(props.dealerships.map(d => d.rating)))
+    return ratings.filter(Boolean).sort()
+})
+
+const uniqueStatuses = computed(() => {
+    const statuses = Array.from(new Set(props.dealerships.map(d => d.status)))
+    return statuses.filter(Boolean).sort()
+})
 
 // Column definitions
 const columns: ColumnDef<Dealership>[] = [
@@ -66,7 +88,7 @@ const columns: ColumnDef<Dealership>[] = [
         accessorKey: 'status',
         header: 'Status',
         cell: ({ row }) => {
-            const status = row.getValue('status')
+            const status = row.getValue('status') as string
             return h('div', {
                 class: `inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                     status === 'active'
@@ -93,6 +115,11 @@ const table = useVueTable({
     onSortingChange: updaterOrValue => valueUpdater(updaterOrValue, sorting),
     onColumnFiltersChange: updaterOrValue => valueUpdater(updaterOrValue, columnFilters),
     onGlobalFilterChange: updaterOrValue => valueUpdater(updaterOrValue, globalFilter),
+    initialState: {
+        pagination: {
+            pageSize: 25,
+        },
+    },
     state: {
         get sorting() { return sorting.value },
         get columnFilters() { return columnFilters.value },
@@ -105,34 +132,153 @@ function valueUpdater<T>(updaterOrValue: any, ref: any) {
         ? updaterOrValue(ref.value)
         : updaterOrValue
 }
+
+// Filter functions
+const updateRatingFilter = (value: string) => {
+    selectedRating.value = value
+    if (value === 'all') {
+        table.getColumn('rating')?.setFilterValue(undefined)
+    } else {
+        table.getColumn('rating')?.setFilterValue(value)
+    }
+}
+
+const updateStatusFilter = (value: string) => {
+    selectedStatus.value = value
+    if (value === 'all') {
+        table.getColumn('status')?.setFilterValue(undefined)
+    } else {
+        table.getColumn('status')?.setFilterValue(value)
+    }
+}
+
+// Clear all filters
+const clearAllFilters = () => {
+    selectedRating.value = 'all'
+    selectedStatus.value = 'all'
+    table.getColumn('rating')?.setFilterValue(undefined)
+    table.getColumn('status')?.setFilterValue(undefined)
+    globalFilter.value = ''
+}
 </script>
 
 <template>
     <div class="w-full p-4">
-        <!-- Search/Filter Input -->
-        <div class="flex justify-between items-center py-4">
-            <Input
-                v-model="globalFilter"
-                placeholder="Filter dealerships..."
-                class="max-w-sm"
-            />
+        <!-- Search and Filters -->
+        <div class="flex items-center justify-between py-4">
+            <div class="flex items-center space-x-4">
+                <!-- Search Input -->
+                <Input
+                    v-model="globalFilter"
+                    placeholder="Filter dealerships..."
+                    class="max-w-sm"
+                />
 
-            <div class="flex items-center space-x-2">
-                <p class="text-sm font-medium">Rows per page</p>
-                <Select
-                    :model-value="table.getState().pagination.pageSize.toString()"
-                    @update:model-value="(value) => table.setPageSize(Number(value))"
-                >
-                    <SelectTrigger class="h-8 w-[80px]">
-                        <selectValue />
-                    </SelectTrigger>
-                    <SelectContent side="top">
-                        <SelectItem value="10">10</SelectItem>
-                        <SelectItem value="25">25</SelectItem>
-                        <SelectItem value="50">50</SelectItem>
-                        <SelectItem value="100">100</SelectItem>
-                    </SelectContent>
-                </Select>
+                <!-- Filters Dropdown -->
+                <DropdownMenu>
+                    <DropdownMenuTrigger as-child>
+                        <Button variant="outline" class="ml-auto">
+                            Filters
+                            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" class="ml-2 h-4 w-4">
+                                <path d="m4.5 6.5 3 3 3-3" fill="currentColor"/>
+                            </svg>
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" class="w-[200px]">
+                        <!-- Rating Filter -->
+                        <DropdownMenuSub>
+                            <DropdownMenuSubTrigger>
+                                <span>Rating</span>
+                                <span class="ml-auto text-xs text-muted-foreground">
+                    {{ selectedRating === 'all' ? 'All' : selectedRating }}
+                  </span>
+                            </DropdownMenuSubTrigger>
+                            <DropdownMenuSubContent>
+                                <DropdownMenuItem @click="updateRatingFilter('all')">
+                    <span :class="selectedRating === 'all' ? 'font-medium' : ''">
+                      All ratings
+                    </span>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                    v-for="rating in uniqueRatings"
+                                    :key="rating"
+                                    @click="updateRatingFilter(rating)"
+                                >
+                    <span :class="selectedRating === rating ? 'font-medium' : ''">
+                      {{ rating }}
+                    </span>
+                                </DropdownMenuItem>
+                            </DropdownMenuSubContent>
+                        </DropdownMenuSub>
+
+                        <!-- Status Filter -->
+                        <DropdownMenuSub>
+                            <DropdownMenuSubTrigger>
+                                <span>Status</span>
+                                <span class="ml-auto text-xs text-muted-foreground">
+                    {{ selectedStatus === 'all' ? 'All' : selectedStatus }}
+                  </span>
+                            </DropdownMenuSubTrigger>
+                            <DropdownMenuSubContent>
+                                <DropdownMenuItem @click="updateStatusFilter('all')">
+                    <span :class="selectedStatus === 'all' ? 'font-medium' : ''">
+                      All statuses
+                    </span>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                    v-for="status in uniqueStatuses"
+                                    :key="status"
+                                    @click="updateStatusFilter(status)"
+                                >
+                    <span :class="selectedStatus === status ? 'font-medium' : ''">
+                      {{ status }}
+                    </span>
+                                </DropdownMenuItem>
+                            </DropdownMenuSubContent>
+                        </DropdownMenuSub>
+
+                        <!-- Rows per page -->
+                        <DropdownMenuSub>
+                            <DropdownMenuSubTrigger>
+                                <span>Rows per page</span>
+                                <span class="ml-auto text-xs text-muted-foreground">
+                    {{ table.getState().pagination.pageSize }}
+                  </span>
+                            </DropdownMenuSubTrigger>
+                            <DropdownMenuSubContent>
+                                <DropdownMenuItem @click="table.setPageSize(10)">
+                    <span :class="table.getState().pagination.pageSize === 10 ? 'font-medium' : ''">
+                      10
+                    </span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem @click="table.setPageSize(25)">
+                    <span :class="table.getState().pagination.pageSize === 25 ? 'font-medium' : ''">
+                      25
+                    </span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem @click="table.setPageSize(50)">
+                    <span :class="table.getState().pagination.pageSize === 50 ? 'font-medium' : ''">
+                      50
+                    </span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem @click="table.setPageSize(100)">
+                    <span :class="table.getState().pagination.pageSize === 100 ? 'font-medium' : ''">
+                      100
+                    </span>
+                                </DropdownMenuItem>
+                            </DropdownMenuSubContent>
+                        </DropdownMenuSub>
+
+                        <DropdownMenuSeparator />
+
+                        <!-- Clear All Filters -->
+                        <DropdownMenuItem @click="clearAllFilters">
+                            <span class="text-red-600 dark:text-red-400">Clear all filters</span>
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
         </div>
 

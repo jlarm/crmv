@@ -4,6 +4,20 @@ import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
 import PlaceholderPattern from '../components/PlaceholderPattern.vue';
+import DealershipsTable from '@/components/DealershipsTable.vue';
+
+defineProps<{
+  dealerships: {
+      data: Array<{
+          id: number;
+          name: string;
+          location: string;
+          phone: string;
+          status: string;
+          rating: string;
+      }>;
+  }
+}>();
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -30,7 +44,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                 </div>
             </div>
             <div class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
-                <PlaceholderPattern />
+                <DealershipsTable :dealerships="dealerships.data" />
             </div>
         </div>
     </AppLayout>

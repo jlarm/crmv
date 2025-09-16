@@ -101,6 +101,24 @@ const columns: ColumnDef<Dealership>[] = [
     {
         accessorKey: 'rating',
         header: 'Rating',
+        cell: ({ row }) => {
+            const rating = row.getValue('rating') as string
+            let colorClasses = ''
+
+            if (rating === 'hot') {
+                colorClasses = 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+            } else if (rating === 'warm') {
+                colorClasses = 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
+            } else if (rating === 'cold') {
+                colorClasses = 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
+            } else {
+                colorClasses = 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300'
+            }
+
+            return h('div', {
+                class: `inline-flex px-2 py-1 text-xs font-semibold rounded-full ${colorClasses}`
+            }, rating)
+        },
     },
 ]
 

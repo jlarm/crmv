@@ -1,9 +1,118 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/vue3';
-import PlaceholderPattern from '../components/PlaceholderPattern.vue';
+import { Head, router } from '@inertiajs/vue3';
+import { useTableFilters } from '@/composables/useTableFilters';
+import LoadingOverlay from '@/components/LoadingOverlay.vue';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import DealershipFilters from '@/components/DealershipFilters.vue';
+import { Button } from '@/components/ui/button';
+import {
+    ChevronLeft,
+    ChevronRight,
+    ChevronsLeft,
+    ChevronsRight,
+} from 'lucide-vue-next';
+import { type Dealership, createColumns } from '@/components/dealerships/columns';
+import DataTable from '@/components/dealerships/DataTable.vue';
+
+interface FilterOption {
+    value: string;
+    label: string;
+}
+
+interface Props {
+    dealerships: {
+        data: Dealership[];
+        links: Array<{ url: string | null; label: string; active: boolean }>;
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+        from: number;
+        to: number;
+    };
+    filters: {
+        search?: string;
+        status?: string;
+        sort?: string;
+        direction?: string;
+    };
+    filterOptions: {
+        statuses: FilterOption[];
+    };
+}
+
+const props = defineProps<Props>();
+
+const { filters, resetFilters, hasActiveFilters } = useTableFilters({
+    routeUrl: dashboard().url,
+    initialFilters: {
+        search: typeof props.filters.search === 'string' ? props.filters.search : '',
+        status: typeof props.filters.status === 'string' ? props.filters.status : '',
+        sort: typeof props.filters.sort === 'string' ? props.filters.sort : '',
+        direction: typeof props.filters.direction === 'string' ? props.filters.direction : 'asc',
+    },
+    debounceMs: 500,
+    onlyProps: ['dealerships', 'filters'],
+});
+
+function handleSort(column: string): void {
+    if (filters.value.sort === column) {
+        // Already sorting by this column, toggle direction
+        filters.value.direction = filters.value.direction === 'asc' ? 'desc' : 'asc';
+    } else {
+        // New column, start with asc
+        filters.value.sort = column;
+        filters.value.direction = 'asc';
+    }
+}
+
+const currentSorting = computed(() => ({
+    column: filters.value.sort || '',
+    direction: (filters.value.direction || 'asc') as 'asc' | 'desc',
+}));
+
+const columns = createColumns(handleSort);
+
+function goToPage(url: string | null): void {
+    if (!url) return;
+    router.visit(url, {
+        preserveState: true,
+        preserveScroll: true,
+    });
+}
+
+
+const firstPageUrl = computed(() => {
+    return props.dealerships.links[0]?.url;
+});
+
+const lastPageUrl = computed(() => {
+    return props.dealerships.links[props.dealerships.links.length - 1]?.url;
+});
+
+const prevPageUrl = computed(() => {
+    const prevLink = props.dealerships.links.find((link) =>
+        link.label.includes('Previous'),
+    );
+    return prevLink?.url;
+});
+
+const nextPageUrl = computed(() => {
+    const nextLink = props.dealerships.links.find((link) =>
+        link.label.includes('Next'),
+    );
+    return nextLink?.url;
+});
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -17,31 +126,89 @@ const breadcrumbs: BreadcrumbItem[] = [
     <Head title="Dashboard" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div
-            class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
-        >
-            <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-                <div
-                    class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-                >
-                    <PlaceholderPattern />
-                </div>
-                <div
-                    class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-                >
-                    <PlaceholderPattern />
-                </div>
-                <div
-                    class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-                >
-                    <PlaceholderPattern />
-                </div>
-            </div>
-            <div
-                class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border"
-            >
-                <PlaceholderPattern />
-            </div>
+        <div class="space-y-6 p-6">
+            <LoadingOverlay />
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Dealerships</CardTitle>
+                    <CardDescription>
+                        Manage and view all dealerships in your system
+                    </CardDescription>
+                </CardHeader>
+                <CardContent class="space-y-6">
+                    <DealershipFilters
+                        v-model="filters"
+                        :statuses="filterOptions.statuses"
+                        :has-active-filters="hasActiveFilters()"
+                        @reset="resetFilters"
+                    />
+
+                    <DataTable
+                        :columns="columns"
+                        :data="dealerships.data"
+                        :sorting="currentSorting"
+                    />
+
+                    <div class="flex items-center justify-between">
+                        <div class="text-sm text-muted-foreground">
+                            Showing {{ dealerships.from || 0 }} to
+                            {{ dealerships.to || 0 }} of
+                            {{ dealerships.total }} results
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                :disabled="
+                                    !firstPageUrl ||
+                                    dealerships.current_page === 1
+                                "
+                                @click="goToPage(firstPageUrl)"
+                            >
+                                <ChevronsLeft class="h-4 w-4" />
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                :disabled="!prevPageUrl"
+                                @click="goToPage(prevPageUrl)"
+                            >
+                                <ChevronLeft class="h-4 w-4" />
+                            </Button>
+
+                            <div class="flex items-center gap-1">
+                                <span class="text-sm">
+                                    Page {{ dealerships.current_page }} of
+                                    {{ dealerships.last_page }}
+                                </span>
+                            </div>
+
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                :disabled="!nextPageUrl"
+                                @click="goToPage(nextPageUrl)"
+                            >
+                                <ChevronRight class="h-4 w-4" />
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                :disabled="
+                                    !lastPageUrl ||
+                                    dealerships.current_page ===
+                                        dealerships.last_page
+                                "
+                                @click="goToPage(lastPageUrl)"
+                            >
+                                <ChevronsRight class="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
         </div>
     </AppLayout>
 </template>

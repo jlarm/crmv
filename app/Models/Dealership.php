@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -74,5 +75,42 @@ final class Dealership extends Model
         return [
             'in_development' => 'boolean',
         ];
+    }
+
+    public function scopeSearch(Builder $query, ?string $search): void
+    {
+        if (! $search) {
+            return;
+        }
+
+        $query->where(function ($query) use ($search) {
+           $query->where('name', 'like', "%{$search}%")
+               ->orWhere('city', 'like', "%{$search}%");
+        });
+    }
+
+    public function scopeWithStatus(Builder $query, ?string $status): void
+    {
+        if (! $status) {
+            return;
+        }
+
+        $query->where('status', $status);
+    }
+
+    public function scopeSortBy(Builder $query, ?string $sort, ?string $direction = 'asc'): void
+    {
+        if (! $sort) {
+            $query->orderBy('name', 'asc');
+            return;
+        }
+
+        $allowedSorts = ['name', 'city', 'state', 'status', 'created_at'];
+
+        if (in_array($sort, $allowedSorts)) {
+            $query->orderBy($sort, $direction === 'desc' ? 'desc' : 'asc');
+        } else {
+            $query->orderBy('name', 'asc');
+        }
     }
 }

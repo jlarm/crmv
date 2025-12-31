@@ -17,6 +17,9 @@ class DealershipResource extends JsonResource
             'status' => $this->status,
             'statusLabel' => ucfirst($this->status),
             'statusVariant' => $this->status === 'active' ? 'default' : 'secondary',
+            'rating' => $this->rating,
+            'ratingLabel' => ucfirst($this->rating),
+            'ratingVariant' => $this->rating === 'warm' ? 'outline' : 'destructive',
         ];
     }
 }

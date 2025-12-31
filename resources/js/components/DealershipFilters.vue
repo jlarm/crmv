@@ -18,8 +18,10 @@ interface Props {
     modelValue: {
         search: string;
         status: string;
+        rating: string;
     };
     statuses: FilterOption[];
+    ratings: FilterOption[];
     hasActiveFilters: boolean;
 }
 
@@ -68,6 +70,24 @@ function updateFilter(key: keyof Props['modelValue'], value: string): void {
                     :value="status.value"
                     >
                     {{ status.label }}
+                </SelectItem>
+            </SelectContent>
+        </Select>
+        <Select
+            :model-value="modelValue.rating || 'all'"
+            @update:model-value="updateFilter('rating', $event === 'all' ? '' : $event)"
+        >
+            <SelectTrigger class="w-48">
+                <SelectValue placeholder="All Ratings" />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value="all">All Ratings</SelectItem>
+                <SelectItem
+                    v-for="rating in ratings"
+                    :key="rating.value"
+                    :value="rating.value"
+                >
+                    {{ rating.label }}
                 </SelectItem>
             </SelectContent>
         </Select>

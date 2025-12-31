@@ -11,7 +11,8 @@ class DealershipIndexRequest extends FormRequest
         return [
             'search' => ['nullable', 'string', 'max:255'],
             'status' => ['nullable', 'string', 'in:active,inactive'],
-            'sort' => ['nullable', 'string', 'in:name,city,state,status'],
+            'rating' => ['nullable', 'string', 'in:hot,warm,cold'],
+            'sort' => ['nullable', 'string', 'in:name,city,state,status,rating'],
             'direction' => ['nullable', 'string', 'in:asc,desc'],
             'page' => ['nullable', 'integer', 'min:1'],
         ];
@@ -20,8 +21,8 @@ class DealershipIndexRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'rating.in' => 'The selected rating is invalid.',
             'status.in' => 'The selected status is invalid.',
-            'region.in' => 'The selected region is invalid.',
             'sort.in' => 'The selected sort column is invalid.',
             'direction.in' => 'The sort direction must be asc or desc.',
         ];

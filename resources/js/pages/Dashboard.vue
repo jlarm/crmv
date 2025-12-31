@@ -43,11 +43,13 @@ interface Props {
     filters: {
         search?: string;
         status?: string;
+        rating?: string;
         sort?: string;
         direction?: string;
     };
     filterOptions: {
         statuses: FilterOption[];
+        ratings: FilterOption[];
     };
 }
 
@@ -58,6 +60,7 @@ const { filters, resetFilters, hasActiveFilters } = useTableFilters({
     initialFilters: {
         search: typeof props.filters.search === 'string' ? props.filters.search : '',
         status: typeof props.filters.status === 'string' ? props.filters.status : '',
+        rating: typeof props.filters.rating === 'string' ? props.filters.rating : '',
         sort: typeof props.filters.sort === 'string' ? props.filters.sort : '',
         direction: typeof props.filters.direction === 'string' ? props.filters.direction : 'asc',
     },
@@ -140,6 +143,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                     <DealershipFilters
                         v-model="filters"
                         :statuses="filterOptions.statuses"
+                        :ratings="filterOptions.ratings"
                         :has-active-filters="hasActiveFilters()"
                         @reset="resetFilters"
                     />

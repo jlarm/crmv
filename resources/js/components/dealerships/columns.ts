@@ -12,6 +12,9 @@ export interface Dealership {
     status: string;
     statusLabel: string;
     statusVariant: 'default' | 'secondary';
+    rating: string;
+    ratingLabel: string;
+    ratingVariant: 'outline' | 'destructive';
 }
 
 export function createColumns(onSort: (column: string) => void): ColumnDef<Dealership>[] {
@@ -76,6 +79,32 @@ export function createColumns(onSort: (column: string) => void): ColumnDef<Deale
                     Badge,
                     { variant: dealership.statusVariant },
                     () => dealership.statusLabel,
+                );
+            },
+        },
+        {
+            accessorKey: 'rating',
+            size: 150,
+            header: () => {
+                return h(
+                    Button,
+                    {
+                        variant: 'ghost',
+                        class: 'h-auto p-0 hover:bg-transparent font-medium',
+                        onClick: () => onSort('rating'),
+                    },
+                    () => [
+                        'Rating',
+                        h(ArrowUpDown, { class: 'ml-2 h-4 w-4 opacity-50' }),
+                    ],
+                );
+            },
+            cell: ({ row }) => {
+                const dealership = row.original;
+                return h(
+                    Badge,
+                    { variant: dealership.ratingVariant },
+                    () => dealership.ratingLabel,
                 );
             },
         },

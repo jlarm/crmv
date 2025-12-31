@@ -84,8 +84,8 @@ final class Dealership extends Model
         }
 
         $query->where(function ($query) use ($search) {
-           $query->where('name', 'like', "%{$search}%")
-               ->orWhere('city', 'like', "%{$search}%");
+            $query->where('name', 'like', "%{$search}%")
+                ->orWhere('city', 'like', "%{$search}%");
         });
     }
 
@@ -98,14 +98,24 @@ final class Dealership extends Model
         $query->where('status', $status);
     }
 
+    public function scopeWithRating(Builder $query, ?string $rating): void
+    {
+        if (! $rating) {
+            return;
+        }
+
+        $query->where('rating', $rating);
+    }
+
     public function scopeSortBy(Builder $query, ?string $sort, ?string $direction = 'asc'): void
     {
         if (! $sort) {
             $query->orderBy('name', 'asc');
+
             return;
         }
 
-        $allowedSorts = ['name', 'city', 'state', 'status', 'created_at'];
+        $allowedSorts = ['name', 'city', 'state', 'status', 'rating'];
 
         if (in_array($sort, $allowedSorts)) {
             $query->orderBy($sort, $direction === 'desc' ? 'desc' : 'asc');

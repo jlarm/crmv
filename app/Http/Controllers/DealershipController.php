@@ -16,18 +16,25 @@ class DealershipController extends Controller
             ->whereNot('status', 'imported')
             ->search($request->input('search'))
             ->withStatus($request->input('status'))
+            ->withRating($request->input('rating'))
             ->sortBy($request->input('sort'), $request->input('direction'))
+            ->select('id', 'name', 'city', 'state', 'status', 'rating')
             ->paginate(15)
             ->withQueryString()
             ->through(fn ($dealership) => DealershipResource::make($dealership)->resolve());
 
         return Inertia::render('Dashboard', [
             'dealerships' => $dealerships,
-            'filters' => $request->only(['search', 'status', 'sort', 'direction']),
+            'filters' => $request->only(['search', 'status', 'rating', 'sort', 'direction']),
             'filterOptions' => [
                 'statuses' => [
                     ['value' => 'active', 'label' => 'Active'],
                     ['value' => 'inactive', 'label' => 'Inactive'],
+                ],
+                'ratings' => [
+                    ['value' => 'hot', 'label' => 'Hot'],
+                    ['value' => 'warm', 'label' => 'Warm'],
+                    ['value' => 'cold', 'label' => 'Cold'],
                 ],
             ],
         ]);

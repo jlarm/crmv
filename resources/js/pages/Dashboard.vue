@@ -21,7 +21,10 @@ import {
     ChevronsLeft,
     ChevronsRight,
 } from 'lucide-vue-next';
-import { type Dealership, createColumns } from '@/components/dealerships/columns';
+import {
+    type Dealership,
+    createColumns,
+} from '@/components/dealerships/columns';
 import DataTable from '@/components/dealerships/DataTable.vue';
 
 interface FilterOption {
@@ -58,11 +61,23 @@ const props = defineProps<Props>();
 const { filters, resetFilters, hasActiveFilters } = useTableFilters({
     routeUrl: dashboard().url,
     initialFilters: {
-        search: typeof props.filters.search === 'string' ? props.filters.search : '',
-        status: typeof props.filters.status === 'string' ? props.filters.status : '',
-        rating: typeof props.filters.rating === 'string' ? props.filters.rating : '',
+        search:
+            typeof props.filters.search === 'string'
+                ? props.filters.search
+                : '',
+        status:
+            typeof props.filters.status === 'string'
+                ? props.filters.status
+                : '',
+        rating:
+            typeof props.filters.rating === 'string'
+                ? props.filters.rating
+                : '',
         sort: typeof props.filters.sort === 'string' ? props.filters.sort : '',
-        direction: typeof props.filters.direction === 'string' ? props.filters.direction : 'asc',
+        direction:
+            typeof props.filters.direction === 'string'
+                ? props.filters.direction
+                : 'asc',
     },
     debounceMs: 500,
     onlyProps: ['dealerships', 'filters'],
@@ -71,7 +86,8 @@ const { filters, resetFilters, hasActiveFilters } = useTableFilters({
 function handleSort(column: string): void {
     if (filters.value.sort === column) {
         // Already sorting by this column, toggle direction
-        filters.value.direction = filters.value.direction === 'asc' ? 'desc' : 'asc';
+        filters.value.direction =
+            filters.value.direction === 'asc' ? 'desc' : 'asc';
     } else {
         // New column, start with asc
         filters.value.sort = column;
@@ -94,13 +110,19 @@ function goToPage(url: string | null): void {
     });
 }
 
-
 const firstPageUrl = computed(() => {
-    return props.dealerships.links[0]?.url;
+    const firstPageLink = props.dealerships.links.find(
+        (link) => link.label === '1',
+    );
+    return firstPageLink?.url;
 });
 
 const lastPageUrl = computed(() => {
-    return props.dealerships.links[props.dealerships.links.length - 1]?.url;
+    const lastPageLink = props.dealerships.links
+        .slice(0, -1)
+        .reverse()
+        .find((link) => !link.label.includes('Previous'));
+    return lastPageLink?.url;
 });
 
 const prevPageUrl = computed(() => {
@@ -132,87 +154,74 @@ const breadcrumbs: BreadcrumbItem[] = [
         <div class="space-y-6 p-6">
             <LoadingOverlay />
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Dealerships</CardTitle>
-                    <CardDescription>
-                        Manage and view all dealerships in your system
-                    </CardDescription>
-                </CardHeader>
-                <CardContent class="space-y-6">
-                    <DealershipFilters
-                        v-model="filters"
-                        :statuses="filterOptions.statuses"
-                        :ratings="filterOptions.ratings"
-                        :has-active-filters="hasActiveFilters()"
-                        @reset="resetFilters"
-                    />
+            <DealershipFilters
+                v-model="filters"
+                :statuses="filterOptions.statuses"
+                :ratings="filterOptions.ratings"
+                :has-active-filters="hasActiveFilters()"
+                @reset="resetFilters"
+            />
 
-                    <DataTable
-                        :columns="columns"
-                        :data="dealerships.data"
-                        :sorting="currentSorting"
-                    />
+            <DataTable
+                :columns="columns"
+                :data="dealerships.data"
+                :sorting="currentSorting"
+            />
 
-                    <div class="flex items-center justify-between">
-                        <div class="text-sm text-muted-foreground">
-                            Showing {{ dealerships.from || 0 }} to
-                            {{ dealerships.to || 0 }} of
-                            {{ dealerships.total }} results
-                        </div>
+            <div class="flex items-center justify-between">
+                <div class="text-sm text-muted-foreground">
+                    Showing {{ dealerships.from || 0 }} to
+                    {{ dealerships.to || 0 }} of {{ dealerships.total }} results
+                </div>
 
-                        <div class="flex items-center gap-2">
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                :disabled="
-                                    !firstPageUrl ||
-                                    dealerships.current_page === 1
-                                "
-                                @click="goToPage(firstPageUrl)"
-                            >
-                                <ChevronsLeft class="h-4 w-4" />
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                :disabled="!prevPageUrl"
-                                @click="goToPage(prevPageUrl)"
-                            >
-                                <ChevronLeft class="h-4 w-4" />
-                            </Button>
+                <div class="flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        :disabled="
+                            !firstPageUrl || dealerships.current_page === 1
+                        "
+                        @click="goToPage(firstPageUrl)"
+                    >
+                        <ChevronsLeft class="h-4 w-4" />
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        :disabled="!prevPageUrl"
+                        @click="goToPage(prevPageUrl)"
+                    >
+                        <ChevronLeft class="h-4 w-4" />
+                    </Button>
 
-                            <div class="flex items-center gap-1">
-                                <span class="text-sm">
-                                    Page {{ dealerships.current_page }} of
-                                    {{ dealerships.last_page }}
-                                </span>
-                            </div>
-
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                :disabled="!nextPageUrl"
-                                @click="goToPage(nextPageUrl)"
-                            >
-                                <ChevronRight class="h-4 w-4" />
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                :disabled="
-                                    !lastPageUrl ||
-                                    dealerships.current_page ===
-                                        dealerships.last_page
-                                "
-                                @click="goToPage(lastPageUrl)"
-                            >
-                                <ChevronsRight class="h-4 w-4" />
-                            </Button>
-                        </div>
+                    <div class="flex items-center gap-1">
+                        <span class="text-sm">
+                            Page {{ dealerships.current_page }} of
+                            {{ dealerships.last_page }}
+                        </span>
                     </div>
-                </CardContent>
-            </Card>
+
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        :disabled="!nextPageUrl"
+                        @click="goToPage(nextPageUrl)"
+                    >
+                        <ChevronRight class="h-4 w-4" />
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        :disabled="
+                            !lastPageUrl ||
+                            dealerships.current_page === dealerships.last_page
+                        "
+                        @click="goToPage(lastPageUrl)"
+                    >
+                        <ChevronsRight class="h-4 w-4" />
+                    </Button>
+                </div>
+            </div>
         </div>
     </AppLayout>
 </template>

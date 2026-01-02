@@ -1,14 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Http\Requests\DealershipIndexRequest;
+use App\Http\Requests\UpdateDealershipRequest;
 use App\Http\Resources\DealershipResource;
+use App\Http\Resources\DealershipShowResource;
 use App\Models\Dealership;
+use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class DealershipController extends Controller
+final class DealershipController extends Controller
 {
     public function index(DealershipIndexRequest $request): Response
     {
@@ -38,5 +43,21 @@ class DealershipController extends Controller
                 ],
             ],
         ]);
+    }
+
+    public function show(Dealership $dealership): Response
+    {
+        return Inertia::render('Dealership/Show', [
+            'dealership' => DealershipShowResource::make($dealership)->resolve(),
+        ]);
+    }
+
+    public function update(UpdateDealershipRequest $request, Dealership $dealership): RedirectResponse
+    {
+        $dealership->update($request->validated());
+
+        return redirect()
+            ->route('dealerships.show', $dealership)
+            ->with('success', 'Dealership updated.');
     }
 }

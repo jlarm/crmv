@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Http\Controllers\DealershipController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -14,5 +16,8 @@ Route::get('/', function () {
 Route::get('dashboard', [DealershipController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
+
+Route::resource('dealerships', DealershipController::class)
+    ->middleware(['auth', 'verified']);
 
 require __DIR__.'/settings.php';

@@ -6,13 +6,6 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import { useTableFilters } from '@/composables/useTableFilters';
 import LoadingOverlay from '@/components/LoadingOverlay.vue';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
 import DealershipFilters from '@/components/DealershipFilters.vue';
 import { Button } from '@/components/ui/button';
 import {

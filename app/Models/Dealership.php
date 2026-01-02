@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Database\Factories\DealershipFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 final class Dealership extends Model
 {
-    /** @use HasFactory<\Database\Factories\DealershipFactory> */
+    /** @use HasFactory<DealershipFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -70,13 +71,6 @@ final class Dealership extends Model
         return $this->hasMany(SentEmail::class);
     }
 
-    protected function casts(): array
-    {
-        return [
-            'in_development' => 'boolean',
-        ];
-    }
-
     public function scopeSearch(Builder $query, ?string $search): void
     {
         if (! $search) {
@@ -122,5 +116,12 @@ final class Dealership extends Model
         } else {
             $query->orderBy('name', 'asc');
         }
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'in_development' => 'boolean',
+        ];
     }
 }

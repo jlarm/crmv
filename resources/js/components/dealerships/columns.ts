@@ -1,8 +1,10 @@
 import { h } from 'vue';
 import type { ColumnDef } from '@tanstack/vue-table';
+import { Link } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowUpDown } from 'lucide-vue-next';
+import { show } from '@/actions/App/Http/Controllers/DealershipController'
 
 export interface Dealership {
     id: number;
@@ -108,5 +110,22 @@ export function createColumns(onSort: (column: string) => void): ColumnDef<Deale
                 );
             },
         },
+        {
+            accessorKey: 'actions',
+            size: 100,
+            header: '',
+            cell: ({ row }) => {
+                const dealership = row.original;
+                return h(
+                    Link,
+                    { href: show.url(dealership.id) },
+                    () => h(
+                        Button,
+                        { variant: 'ghost', size: 'sm', as: 'span' },
+                        () => 'View',
+                    ),
+                );
+            },
+        }
     ];
 }

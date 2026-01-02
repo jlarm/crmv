@@ -20,6 +20,8 @@ final class DealershipUpdateRequest extends FormRequest
             'current_solution_name' => ['nullable', 'string', 'max:255'],
             'current_solution_use' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string'],
+            'status' => ['required', 'string', 'in:active,inactive'],
+            'rating' => ['required', 'string', 'in:hot,warm,cold'],
         ];
     }
 }

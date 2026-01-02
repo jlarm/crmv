@@ -22,6 +22,8 @@ final class DealershipShowResource extends JsonResource
             'notes' => $this->notes,
             'currentSolutionName' => $this->current_solution_name,
             'currentSolutionUse' => $this->current_solution_use,
+            'status' => $this->status,
+            'rating' => $this->rating,
         ];
     }
 }

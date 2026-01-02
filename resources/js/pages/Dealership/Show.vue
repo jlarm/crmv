@@ -5,18 +5,24 @@ import { Button } from '@/components/ui/button';
 import { Trash2, Save } from 'lucide-vue-next';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import DealershipController, { show } from '@/actions/App/Http/Controllers/DealershipController';
-import {
-    Field,
-    FieldGroup,
-    FieldLabel,
-} from '@/components/ui/field';
+import DealershipController, {
+    show,
+} from '@/actions/App/Http/Controllers/DealershipController';
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Textarea } from '@/components/ui/textarea';
 import type { BreadcrumbItem } from '@/types';
 import { Separator } from '@/components/ui/separator';
 import InputError from '@/components/InputError.vue';
 import { watch } from 'vue';
 import { toast } from 'vue-sonner';
+import { Badge } from '@/components/ui/badge';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 
 interface Dealership {
     id: number;
@@ -29,6 +35,8 @@ interface Dealership {
     notes: string;
     currentSolutionName: string;
     currentSolutionUse: string;
+    status: string;
+    rating: string;
 }
 
 interface Props {
@@ -46,11 +54,14 @@ const breadcrumbItems: BreadcrumbItem[] = [
     },
 ];
 
-watch(() => page.props.flash?.success, (message) => {
-    if (message) {
-        toast.success(message);
-    }
-});
+watch(
+    () => page.props.flash?.success,
+    (message) => {
+        if (message) {
+            toast.success(message);
+        }
+    },
+);
 </script>
 
 <template>
@@ -64,10 +75,22 @@ watch(() => page.props.flash?.success, (message) => {
         >
             <div class="flex shrink-0 items-center justify-between gap-4">
                 <div class="flex flex-col">
-                    <h1 class="text-2xl font-black text-slate-900 dark:text-slate-100">
+                    <h1
+                        class="text-2xl font-black text-slate-900 dark:text-slate-100"
+                    >
                         {{ dealership.name }}
                     </h1>
-                    <p class="text-xs text-zinc-400 dark:text-zinc-500">ID: {{ dealership.id }}</p>
+                    <div class="mt-1 flex items-center gap-1">
+                        <p class="text-xs text-zinc-400 dark:text-zinc-500">
+                            ID: {{ dealership.id }}
+                        </p>
+                        <Badge variant="secondary" class="ml-2">{{
+                            dealership.status
+                        }}</Badge>
+                        <Badge variant="secondary" class="ml-2">{{
+                            dealership.rating
+                        }}</Badge>
+                    </div>
                 </div>
                 <div class="flex items-center gap-3">
                     <Button variant="destructive" :disabled="processing">
@@ -81,7 +104,7 @@ watch(() => page.props.flash?.success, (message) => {
                 </div>
             </div>
 
-            <div class="mx-auto mt-10 w-full">
+            <div class="mx-auto mt-5 w-full">
                 <div class="grid grid-cols-1 gap-5 md:grid-cols-3">
                     <Card class="col-span-2">
                         <div class="space-y-5 px-5">
@@ -152,7 +175,9 @@ watch(() => page.props.flash?.success, (message) => {
                                             required
                                             placeholder="Zip Code"
                                         />
-                                        <InputError :message="errors.zip_code" />
+                                        <InputError
+                                            :message="errors.zip_code"
+                                        />
                                     </Field>
 
                                     <Field class="col-span-full">
@@ -200,7 +225,9 @@ watch(() => page.props.flash?.success, (message) => {
                                             "
                                         />
                                         <InputError
-                                            :message="errors.current_solution_use"
+                                            :message="
+                                                errors.current_solution_use
+                                            "
                                         />
                                     </Field>
 
@@ -221,7 +248,54 @@ watch(() => page.props.flash?.success, (message) => {
                         </div>
                     </Card>
                     <Card>
-                        <p>Add content</p>
+                        <div class="space-y-5 px-5">
+                            <Field>
+                                <FieldLabel for="status">Status</FieldLabel>
+                                <Select
+                                    id="status"
+                                    name="status"
+                                    :default-value="dealership.status"
+                                >
+                                    <SelectTrigger class="w-full">
+                                        <SelectValue
+                                            placeholder="Select a status"
+                                        />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="active"
+                                            >Active</SelectItem
+                                        >
+                                        <SelectItem value="inactive"
+                                            >Inactive</SelectItem
+                                        >
+                                    </SelectContent>
+                                </Select>
+                            </Field>
+
+                            <Field>
+                                <FieldLabel for="rating">Rating</FieldLabel>
+                                <Select
+                                    id="rating"
+                                    name="rating"
+                                    :default-value="dealership.rating"
+                                >
+                                    <SelectTrigger class="w-full">
+                                        <SelectValue
+                                            placeholder="Select a rating"
+                                        />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="hot">Hot</SelectItem>
+                                        <SelectItem value="warm"
+                                            >Warm</SelectItem
+                                        >
+                                        <SelectItem value="cold"
+                                            >Cold</SelectItem
+                                        >
+                                    </SelectContent>
+                                </Select>
+                            </Field>
+                        </div>
                     </Card>
                 </div>
             </div>

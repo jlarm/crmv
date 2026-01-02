@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Http\Requests\DealershipIndexRequest;
-use App\Http\Requests\UpdateDealershipRequest;
+use App\Http\Requests\DealershipUpdateRequest;
 use App\Http\Resources\DealershipResource;
 use App\Http\Resources\DealershipShowResource;
 use App\Models\Dealership;
@@ -52,12 +52,12 @@ final class DealershipController extends Controller
         ]);
     }
 
-    public function update(UpdateDealershipRequest $request, Dealership $dealership): RedirectResponse
+    public function update(DealershipUpdateRequest $request, Dealership $dealership): RedirectResponse
     {
         $dealership->update($request->validated());
 
         return redirect()
             ->route('dealerships.show', $dealership)
-            ->with('success', 'Dealership updated.');
+            ->with('success', 'Dealership updated successfully.');
     }
 }

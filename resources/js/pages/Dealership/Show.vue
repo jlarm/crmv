@@ -1,24 +1,21 @@
 <script setup lang="ts">
-import { Head, Form, useForm } from '@inertiajs/vue3';
+import { Head, Form, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Button } from '@/components/ui/button';
 import { Trash2, Save } from 'lucide-vue-next';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import {
-    show,
-    update,
-} from '@/actions/App/Http/Controllers/DealershipController';
-import { computed, onMounted, onUnmounted } from 'vue';
+import DealershipController, { show } from '@/actions/App/Http/Controllers/DealershipController';
 import {
     Field,
-    FieldError,
     FieldGroup,
     FieldLabel,
 } from '@/components/ui/field';
 import { Textarea } from '@/components/ui/textarea';
 import type { BreadcrumbItem } from '@/types';
 import { Separator } from '@/components/ui/separator';
+import InputError from '@/components/InputError.vue';
+import { watch } from 'vue';
 import { toast } from 'vue-sonner';
 
 interface Dealership {
@@ -40,51 +37,7 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const form = useForm({
-    name: props.dealership.name,
-    address: props.dealership.address,
-    city: props.dealership.city,
-    state: props.dealership.state,
-    zipCode: props.dealership.zipCode,
-    phone: props.dealership.phone,
-    notes: props.dealership.notes,
-    currentSolutionName: props.dealership.currentSolutionName,
-    currentSolutionUse: props.dealership.currentSolutionUse,
-});
-
-const isDirty = computed(() => form.isDirty);
-
-function submit(): void {
-    form.transform((data) => ({
-        name: data.name,
-        address: data.address,
-        city: data.city,
-        state: data.state,
-        zip_code: data.zipCode,
-        phone: data.phone,
-        notes: data.notes,
-        current_solution_name: data.currentSolutionName,
-        current_solution_use: data.currentSolutionUse,
-    })).put(update.url(props.dealership.id), {
-        preserveScroll: true,
-        onSuccess: () => {
-            toast.success('Dealership updated successfully');
-        },
-    });
-}
-
-function cancel(): void {
-    form.reset();
-}
-
-function handleKeyDown(event: KeyboardEvent): void {
-    if ((event.metaKey || event.ctrlKey) && event.key === 's') {
-        event.preventDefault();
-        if (!form.processing && isDirty.value) {
-            submit();
-        }
-    }
-}
+const page = usePage();
 
 const breadcrumbItems: BreadcrumbItem[] = [
     {
@@ -93,42 +46,35 @@ const breadcrumbItems: BreadcrumbItem[] = [
     },
 ];
 
-onMounted(() => {
-    window.addEventListener('keydown', handleKeyDown);
-});
-
-onUnmounted(() => {
-    window.removeEventListener('keydown', handleKeyDown);
+watch(() => page.props.flash?.success, (message) => {
+    if (message) {
+        toast.success(message);
+    }
 });
 </script>
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbItems">
         <Head :title="dealership.name" />
-        <Form @submit.prevent="submit" method="post" class="px-8 py-3">
+        <Form
+            v-bind="DealershipController.update.form(dealership.id)"
+            class="px-8 py-3"
+            set-defaults-on-success
+            v-slot="{ errors, processing, isDirty }"
+        >
             <div class="flex shrink-0 items-center justify-between gap-4">
                 <div class="flex flex-col">
-                    <h1 class="text-2xl font-black text-slate-900">
+                    <h1 class="text-2xl font-black text-slate-900 dark:text-slate-100">
                         {{ dealership.name }}
                     </h1>
-                    <p class="text-xs text-zinc-400">ID: {{ dealership.id }}</p>
+                    <p class="text-xs text-zinc-400 dark:text-zinc-500">ID: {{ dealership.id }}</p>
                 </div>
                 <div class="flex items-center gap-3">
-                    <Button variant="destructive" :disabled="form.processing">
+                    <Button variant="destructive" :disabled="processing">
                         <Trash2 />
                         Delete
                     </Button>
-                    <div class="mx-1 h-6 w-px bg-slate-200"></div>
-                    <Button
-                        variant="outline"
-                        :disabled="!isDirty || form.processing"
-                        @click="cancel"
-                        >Cancel</Button
-                    >
-                    <Button
-                        @click="submit"
-                        :disabled="form.processing || !isDirty"
-                    >
+                    <Button :disabled="processing || !isDirty">
                         <Save />
                         Update
                     </Button>
@@ -146,13 +92,13 @@ onUnmounted(() => {
                                             >Dealership Name</FieldLabel
                                         >
                                         <Input
-                                            v-model="form.name"
+                                            id="name"
                                             name="name"
+                                            :default-value="dealership.name"
+                                            required
                                             placeholder="Name"
                                         />
-                                        <FieldError
-                                            :errors="[form.errors.name]"
-                                        />
+                                        <InputError :message="errors.name" />
                                     </Field>
 
                                     <Field class="col-span-full">
@@ -160,25 +106,25 @@ onUnmounted(() => {
                                             >Address</FieldLabel
                                         >
                                         <Input
-                                            v-model="form.address"
+                                            id="address"
                                             name="address"
+                                            :default-value="dealership.address"
+                                            required
                                             placeholder="Address"
                                         />
-                                        <FieldError
-                                            :errors="[form.errors.address]"
-                                        />
+                                        <InputError :message="errors.address" />
                                     </Field>
 
                                     <Field class="col-span-2">
                                         <FieldLabel for="city">City</FieldLabel>
                                         <Input
-                                            v-model="form.city"
+                                            id="city"
                                             name="city"
+                                            :default-value="dealership.city"
+                                            required
                                             placeholder="City"
                                         />
-                                        <FieldError
-                                            :errors="[form.errors.city]"
-                                        />
+                                        <InputError :message="errors.city" />
                                     </Field>
 
                                     <Field class="col-span-2">
@@ -186,13 +132,13 @@ onUnmounted(() => {
                                             >State</FieldLabel
                                         >
                                         <Input
-                                            v-model="form.state"
+                                            id="state"
                                             name="state"
+                                            :default-value="dealership.state"
+                                            required
                                             placeholder="State"
                                         />
-                                        <FieldError
-                                            :errors="[form.errors.state]"
-                                        />
+                                        <InputError :message="errors.state" />
                                     </Field>
 
                                     <Field class="col-span-2">
@@ -200,13 +146,13 @@ onUnmounted(() => {
                                             >Zip Code</FieldLabel
                                         >
                                         <Input
-                                            v-model="form.zipCode"
+                                            id="zip_code"
                                             name="zip_code"
+                                            :default-value="dealership.zipCode"
+                                            required
                                             placeholder="Zip Code"
                                         />
-                                        <FieldError
-                                            :errors="[form.errors.zipCode]"
-                                        />
+                                        <InputError :message="errors.zip_code" />
                                     </Field>
 
                                     <Field class="col-span-full">
@@ -214,13 +160,12 @@ onUnmounted(() => {
                                             >Phone Number</FieldLabel
                                         >
                                         <Input
-                                            v-model="form.phone"
+                                            id="phone"
                                             name="phone"
+                                            :default-value="dealership.phone"
                                             placeholder="999-999-9999"
                                         />
-                                        <FieldError
-                                            :errors="[form.errors.phone]"
-                                        />
+                                        <InputError :message="errors.phone" />
                                     </Field>
 
                                     <Separator class="col-span-full my-5" />
@@ -230,13 +175,16 @@ onUnmounted(() => {
                                             >Current Solution Name</FieldLabel
                                         >
                                         <Input
-                                            v-model="form.currentSolutionName"
+                                            id="current_solution_name"
                                             name="current_solution_name"
+                                            :default-value="
+                                                dealership.currentSolutionName
+                                            "
                                         />
-                                        <FieldError
-                                            :errors="[
-                                                form.errors.currentSolutionName,
-                                            ]"
+                                        <InputError
+                                            :message="
+                                                errors.current_solution_name
+                                            "
                                         />
                                     </Field>
 
@@ -245,13 +193,14 @@ onUnmounted(() => {
                                             >Current Solution Use</FieldLabel
                                         >
                                         <Input
-                                            v-model="form.currentSolutionUse"
+                                            id="current_solution_use"
                                             name="current_solution_use"
+                                            :default-value="
+                                                dealership.currentSolutionUse
+                                            "
                                         />
-                                        <FieldError
-                                            :errors="[
-                                                form.errors.currentSolutionUse,
-                                            ]"
+                                        <InputError
+                                            :message="errors.current_solution_use"
                                         />
                                     </Field>
 
@@ -260,19 +209,20 @@ onUnmounted(() => {
                                             >Notes</FieldLabel
                                         >
                                         <Textarea
-                                            v-model="form.notes"
+                                            id="notes"
                                             name="notes"
+                                            :default-value="dealership.notes"
                                             placeholder="Add note..."
                                         />
-                                        <FieldError
-                                            :errors="[form.errors.notes]"
-                                        />
+                                        <InputError :message="errors.notes" />
                                     </Field>
                                 </div>
                             </FieldGroup>
                         </div>
                     </Card>
-                    <Card></Card>
+                    <Card>
+                        <p>Add content</p>
+                    </Card>
                 </div>
             </div>
         </Form>

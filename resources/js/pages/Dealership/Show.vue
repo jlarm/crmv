@@ -2,8 +2,8 @@
 import { Head, Form, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Button } from '@/components/ui/button';
-import { Trash2, Save } from 'lucide-vue-next';
-import { Card } from '@/components/ui/card';
+import { Trash2, Save, Minus } from 'lucide-vue-next';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import DealershipController, {
     show,
@@ -23,6 +23,14 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import {
+    Item,
+    ItemActions,
+    ItemContent,
+    ItemGroup,
+    ItemSeparator,
+    ItemTitle,
+} from '@/components/ui/item';
 
 interface Dealership {
     id: number;
@@ -37,6 +45,14 @@ interface Dealership {
     currentSolutionUse: string;
     status: string;
     rating: string;
+    users: {
+        data: User[];
+    };
+}
+
+interface User {
+    id: number;
+    name: string;
 }
 
 interface Props {
@@ -247,10 +263,12 @@ watch(
                             </FieldGroup>
                         </div>
                     </Card>
-                    <Card>
-                        <div class="space-y-5 px-5">
-                            <Field>
-                                <FieldLabel for="status">Status</FieldLabel>
+                    <div class="space-y-5">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Status</CardTitle>
+                            </CardHeader>
+                            <CardContent>
                                 <Select
                                     id="status"
                                     name="status"
@@ -270,10 +288,14 @@ watch(
                                         >
                                     </SelectContent>
                                 </Select>
-                            </Field>
+                            </CardContent>
+                        </Card>
 
-                            <Field>
-                                <FieldLabel for="rating">Rating</FieldLabel>
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Rating</CardTitle>
+                            </CardHeader>
+                            <CardContent>
                                 <Select
                                     id="rating"
                                     name="rating"
@@ -294,9 +316,46 @@ watch(
                                         >
                                     </SelectContent>
                                 </Select>
-                            </Field>
-                        </div>
-                    </Card>
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardHeader>
+                                <CardTitle
+                                    class="flex items-center justify-between"
+                                >
+                                    Consultants
+                                    <Badge variant="outline" class="ml-2"
+                                        >{{
+                                            dealership.users.data.length
+                                        }}
+                                        selected</Badge
+                                    >
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <ItemGroup
+                                    class="divide-y divide-zinc-200 dark:divide-zinc-700"
+                                >
+                                    <template
+                                        v-for="user in dealership.users.data"
+                                        :key="user.id"
+                                    >
+                                        <span class="py-2 text-sm flex items-center justify-between gap-2">
+                                            {{ user.name }}
+                                            <Button
+                                                size="icon-sm"
+                                                variant="outline"
+                                                class="rounded-full"
+                                            >
+                                                <Minus />
+                                            </Button>
+                                        </span>
+                                    </template>
+                                </ItemGroup>
+                            </CardContent>
+                        </Card>
+                    </div>
                 </div>
             </div>
         </Form>

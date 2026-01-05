@@ -51,8 +51,10 @@ export function useTableFilters(options: UseTableFiltersOptions) {
         })
     }
 
-    function hasActiveFilters(): boolean {
-        return Object.values(filters.value).some(value => value !== '' && value !== null)
+    function hasActiveFilters(excludeKeys: string[] = []): boolean {
+        return Object.entries(filters.value)
+            .filter(([key]) => !excludeKeys.includes(key))
+            .some(([_, value]) => value !== '' && value !== null)
     }
 
     return {

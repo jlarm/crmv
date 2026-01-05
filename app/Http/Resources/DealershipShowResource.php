@@ -24,6 +24,7 @@ final class DealershipShowResource extends JsonResource
             'currentSolutionUse' => $this->current_solution_use,
             'status' => $this->status,
             'rating' => $this->rating,
+            'users' => UserResource::collection($this->whenLoaded('users')),
         ];
     }
 }

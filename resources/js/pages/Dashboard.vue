@@ -151,7 +151,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                 v-model="filters"
                 :statuses="filterOptions.statuses"
                 :ratings="filterOptions.ratings"
-                :has-active-filters="hasActiveFilters()"
+                :has-active-filters="hasActiveFilters(['sort', 'direction'])"
                 @reset="resetFilters"
             />
 

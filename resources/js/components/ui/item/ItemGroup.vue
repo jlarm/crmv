@@ -9,13 +9,9 @@ const props = defineProps<{
 
 <template>
   <div
-    data-slot="card"
-    :class="
-      cn(
-        'bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6',
-        props.class,
-      )
-    "
+    role="list"
+    data-slot="item-group"
+    :class="cn('group/item-group flex flex-col', props.class)"
   >
     <slot />
   </div>

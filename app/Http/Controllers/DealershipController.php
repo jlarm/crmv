@@ -48,9 +48,9 @@ final class DealershipController extends Controller
     public function show(Dealership $dealership): Response
     {
         $dealership->load([
-            'users' => fn($query) => $query->select('id', 'name'),
+            'users' => fn ($query) => $query->select('id', 'name'),
             'stores',
-            'contacts'
+            'contacts',
         ]);
 
         return Inertia::render('Dealership/Show', [

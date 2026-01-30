@@ -7,11 +7,14 @@ namespace App\Http\Controllers;
 use App\Http\Requests\CreateOrganizationRequest;
 use App\Models\Organization;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Gate;
 
 final class OrganizationController extends Controller
 {
     public function store(CreateOrganizationRequest $request): RedirectResponse
     {
+        Gate::authorize('create', Organization::class);
+
         $organization = Organization::create([
             'name' => $request->name,
         ]);

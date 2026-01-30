@@ -20,6 +20,7 @@ const currentOrganizationId = computed(() => page.props.auth.user?.current_organ
 const currentOrganization = computed(() =>
     organizations.value.find((org: { id: number }) => org.id === currentOrganizationId.value),
 );
+const isAdmin = computed(() => page.props.auth.user?.is_admin);
 
 function switchOrganization(organizationId: number) {
     router.visit(switchMethod(organizationId).url, { method: 'put', preserveScroll: true });
@@ -49,12 +50,12 @@ function switchOrganization(organizationId: number) {
                 {{ organization.name }}
                 <Check v-if="organization.id === currentOrganizationId" class="ml-auto" />
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem @select="showCreateDialog = true">
+            <DropdownMenuSeparator v-if="isAdmin" />
+            <DropdownMenuItem v-if="isAdmin" @select="showCreateDialog = true">
                 <PlusSquareIcon /> Add Organization
             </DropdownMenuItem>
         </DropdownMenuContent>
     </DropdownMenu>
 
-    <CreateOrganizationDialog v-model:open="showCreateDialog" />
+    <CreateOrganizationDialog v-if="isAdmin" v-model:open="showCreateDialog" />
 </template>

@@ -16,25 +16,34 @@ import { switchMethod } from '@/actions/App/Http/Controllers/OrganizationControl
 const showCreateDialog = ref(false);
 const page = usePage();
 const organizations = computed(() => page.props.auth.organizations);
-const currentOrganizationId = computed(() => page.props.auth.user?.current_organization_id);
+const currentOrganizationId = computed(
+    () => page.props.auth.user?.current_organization_id,
+);
 const currentOrganization = computed(() =>
-    organizations.value.find((org: { id: number }) => org.id === currentOrganizationId.value),
+    organizations.value.find(
+        (org: { id: number }) => org.id === currentOrganizationId.value,
+    ),
 );
 const isAdmin = computed(() => page.props.auth.user?.is_admin);
 
 function switchOrganization(organizationId: number) {
-    router.visit(switchMethod(organizationId).url, { method: 'put', preserveScroll: true });
+    router.visit(switchMethod(organizationId).url, {
+        method: 'put',
+        preserveScroll: true,
+    });
 }
 </script>
 
 <template>
     <DropdownMenu>
-        <DropdownMenuTrigger as-child>
+        <DropdownMenuTrigger class="border border-sidebar-border" as-child>
             <SidebarMenuButton
                 size="lg"
                 class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-                <span class="font-medium truncate">{{ currentOrganization?.name ?? 'Select Organization' }}</span>
+                <span class="truncate font-medium">{{
+                    currentOrganization?.name ?? 'Select Organization'
+                }}</span>
                 <ChevronsUpDown class="ml-auto size-4" />
             </SidebarMenuButton>
         </DropdownMenuTrigger>
@@ -48,7 +57,10 @@ function switchOrganization(organizationId: number) {
                 @select="switchOrganization(organization.id)"
             >
                 {{ organization.name }}
-                <Check v-if="organization.id === currentOrganizationId" class="ml-auto" />
+                <Check
+                    v-if="organization.id === currentOrganizationId"
+                    class="ml-auto"
+                />
             </DropdownMenuItem>
             <DropdownMenuSeparator v-if="isAdmin" />
             <DropdownMenuItem v-if="isAdmin" @select="showCreateDialog = true">

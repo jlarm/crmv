@@ -7,14 +7,12 @@ import {
     SidebarFooter,
     SidebarHeader,
     SidebarMenu,
-    SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/vue3';
 import { LayoutGrid } from 'lucide-vue-next';
-import AppLogo from './AppLogo.vue';
+import OrganizationSwitcher from '@/components/OrganizationSwitcher.vue';
 
 const mainNavItems: NavItem[] = [
     {
@@ -26,15 +24,11 @@ const mainNavItems: NavItem[] = [
 </script>
 
 <template>
-    <Sidebar collapsible="icon" variant="inset">
+    <Sidebar collapsible="icon" variant="sidebar">
         <SidebarHeader>
             <SidebarMenu>
                 <SidebarMenuItem>
-                    <SidebarMenuButton size="lg" as-child>
-                        <Link :href="dashboard()">
-                            <AppLogo />
-                        </Link>
-                    </SidebarMenuButton>
+                    <OrganizationSwitcher />
                 </SidebarMenuItem>
             </SidebarMenu>
         </SidebarHeader>

@@ -22,8 +22,8 @@ final class OrganizationFactory extends Factory
         $name = $this->faker->company();
 
         return [
+            'uuid' => Str::uuid(),
             'name' => $name,
-            'slug' => Str::slug($name),
         ];
     }
 }

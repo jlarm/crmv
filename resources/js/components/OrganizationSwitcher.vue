@@ -55,11 +55,12 @@ function switchOrganization(organizationId: number) {
                 v-for="organization in organizations"
                 :key="organization.id"
                 @select="switchOrganization(organization.id)"
+                class="flex items-center gap-2"
             >
-                {{ organization.name }}
+                <span class="truncate flex-1">{{ organization.name }}</span>
                 <Check
                     v-if="organization.id === currentOrganizationId"
-                    class="ml-auto"
+                    class="size-4 shrink-0"
                 />
             </DropdownMenuItem>
             <DropdownMenuSeparator v-if="isAdmin" />

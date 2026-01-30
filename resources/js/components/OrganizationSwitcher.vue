@@ -34,7 +34,7 @@ function switchOrganization(organizationId: number) {
                 size="lg"
                 class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-                <span class="font-medium">{{ currentOrganization?.name ?? 'Select Organization' }}</span>
+                <span class="font-medium truncate">{{ currentOrganization?.name ?? 'Select Organization' }}</span>
                 <ChevronsUpDown class="ml-auto size-4" />
             </SidebarMenuButton>
         </DropdownMenuTrigger>

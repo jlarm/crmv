@@ -57,6 +57,11 @@ final class User extends Authenticatable
             ->implode('');
     }
 
+    public function organizations(): BelongsToMany
+    {
+        return $this->belongsToMany(Organization::class);
+    }
+
     public function dealerships(): BelongsToMany
     {
         return $this->belongsToMany(Dealership::class);

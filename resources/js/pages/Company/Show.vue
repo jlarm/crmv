@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, Form, usePage } from '@inertiajs/vue3';
+import { Head, Form, router, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Button } from '@/components/ui/button';
 import {
@@ -47,6 +47,12 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface Company {
     id: number;
@@ -140,6 +146,30 @@ function openStoreEdit(store: Store): void {
 function openContactEdit(contact: Contact): void {
     editingContact.value = contact;
     isContactEditOpen.value = true;
+}
+
+function deleteStore(store: Store): void {
+    if (!company.value?.id) {
+        return;
+    }
+
+    if (!window.confirm('Delete this store?')) {
+        return;
+    }
+
+    router.delete(`/companies/${company.value.id}/stores/${store.id}`);
+}
+
+function deleteContact(contact: Contact): void {
+    if (!company.value?.id) {
+        return;
+    }
+
+    if (!window.confirm('Delete this contact?')) {
+        return;
+    }
+
+    router.delete(`/companies/${company.value.id}/contacts/${contact.id}`);
 }
 
 watch(
@@ -523,15 +553,29 @@ watch(
                                     <CardTitle class="text-base font-semibold text-slate-900 dark:text-slate-100">
                                         {{ store.name }}
                                     </CardTitle>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        class="text-slate-500 hover:text-slate-700"
-                                        @click="openStoreEdit(store)"
-                                        aria-label="Edit store"
-                                    >
-                                        <MoreVertical class="h-4 w-4" />
-                                    </Button>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger as-child>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                class="text-slate-500 hover:text-slate-700"
+                                                aria-label="Store actions"
+                                            >
+                                                <MoreVertical class="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuItem @click="openStoreEdit(store)">
+                                                Edit
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem
+                                                class="text-red-600 focus:text-red-600"
+                                                @click="deleteStore(store)"
+                                            >
+                                                Delete
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
                                 </div>
                                 <p class="text-xs text-slate-500">
                                     {{ store.address || '—' }}
@@ -741,15 +785,29 @@ watch(
                                         fill="currentColor"
                                     />
                                 </div>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    class="text-slate-500 hover:text-slate-700"
-                                    @click="openContactEdit(contact)"
-                                    aria-label="Edit contact"
-                                >
-                                    <MoreVertical class="h-4 w-4" />
-                                </Button>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger as-child>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            class="text-slate-500 hover:text-slate-700"
+                                            aria-label="Contact actions"
+                                        >
+                                            <MoreVertical class="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem @click="openContactEdit(contact)">
+                                            Edit
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem
+                                            class="text-red-600 focus:text-red-600"
+                                            @click="deleteContact(contact)"
+                                        >
+                                            Delete
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </div>
                         </CardHeader>
                         <CardContent class="space-y-3 text-xs text-slate-600">

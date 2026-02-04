@@ -53,4 +53,13 @@ final class CompanyStoreController extends Controller
 
         return back()->with('success', 'Store updated successfully.');
     }
+
+    public function destroy(Company $company, Store $store): RedirectResponse
+    {
+        abort_unless($store->company_id === $company->id, 404);
+
+        $store->delete();
+
+        return back()->with('success', 'Store deleted successfully.');
+    }
 }

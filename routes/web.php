@@ -31,11 +31,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('companies.stores.store');
     Route::put('companies/{company}/stores/{store}', [CompanyStoreController::class, 'update'])
         ->name('companies.stores.update');
+    Route::delete('companies/{company}/stores/{store}', [CompanyStoreController::class, 'destroy'])
+        ->name('companies.stores.destroy');
 
     Route::post('companies/{company}/contacts', [CompanyContactController::class, 'store'])
         ->name('companies.contacts.store');
     Route::put('companies/{company}/contacts/{contact}', [CompanyContactController::class, 'update'])
         ->name('companies.contacts.update');
+    Route::delete('companies/{company}/contacts/{contact}', [CompanyContactController::class, 'destroy'])
+        ->name('companies.contacts.destroy');
 });
 
 Route::resource('company', DealershipController::class)

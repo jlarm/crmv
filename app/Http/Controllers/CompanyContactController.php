@@ -50,4 +50,13 @@ final class CompanyContactController extends Controller
 
         return back()->with('success', 'Contact updated successfully.');
     }
+
+    public function destroy(Company $company, Contact $contact): RedirectResponse
+    {
+        abort_unless($contact->company_id === $company->id, 404);
+
+        $contact->delete();
+
+        return back()->with('success', 'Contact deleted successfully.');
+    }
 }

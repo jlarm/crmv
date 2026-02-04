@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Trash2, Save, Minus } from 'lucide-vue-next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import DealershipController, {
+import CompanyController, {
     show,
-} from '@/actions/App/Http/Controllers/DealershipController';
+} from '@/actions/App/Http/Controllers/CompanyController';
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Textarea } from '@/components/ui/textarea';
 import type { BreadcrumbItem } from '@/types';
@@ -32,7 +32,7 @@ import {
     ItemTitle,
 } from '@/components/ui/item';
 
-interface Dealership {
+interface Company {
     id: number;
     name: string;
     address: string;
@@ -56,7 +56,7 @@ interface User {
 }
 
 interface Props {
-    dealership: Dealership;
+    company: Company;
 }
 
 const props = defineProps<Props>();
@@ -65,8 +65,8 @@ const page = usePage();
 
 const breadcrumbItems: BreadcrumbItem[] = [
     {
-        title: props.dealership.name,
-        href: show(props.dealership.id).url,
+        title: props.company.name,
+        href: show(props.company.id).url,
     },
 ];
 
@@ -82,9 +82,9 @@ watch(
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbItems">
-        <Head :title="dealership.name" />
+        <Head :title="company.name" />
         <Form
-            v-bind="DealershipController.update.form(dealership.id)"
+            v-bind="CompanyController.update.form(company.id)"
             class="px-8 py-3"
             set-defaults-on-success
             v-slot="{ errors, processing, isDirty }"
@@ -94,17 +94,17 @@ watch(
                     <h1
                         class="text-2xl font-black text-slate-900 dark:text-slate-100"
                     >
-                        {{ dealership.name }}
+                        {{ company.name }}
                     </h1>
                     <div class="mt-1 flex items-center gap-1">
                         <p class="text-xs text-zinc-400 dark:text-zinc-500">
-                            ID: {{ dealership.id }}
+                            ID: {{ company.id }}
                         </p>
                         <Badge variant="secondary" class="ml-2">{{
-                            dealership.status
+                            company.status
                         }}</Badge>
                         <Badge variant="secondary" class="ml-2">{{
-                            dealership.rating
+                            company.rating
                         }}</Badge>
                     </div>
                 </div>
@@ -128,12 +128,12 @@ watch(
                                 <div class="grid grid-cols-6 gap-5">
                                     <Field class="col-span-full">
                                         <FieldLabel for="name"
-                                            >Dealership Name</FieldLabel
+                                            >Company Name</FieldLabel
                                         >
                                         <Input
                                             id="name"
                                             name="name"
-                                            :default-value="dealership.name"
+                                            :default-value="company.name"
                                             required
                                             placeholder="Name"
                                         />
@@ -147,7 +147,7 @@ watch(
                                         <Input
                                             id="address"
                                             name="address"
-                                            :default-value="dealership.address"
+                                            :default-value="company.address"
                                             required
                                             placeholder="Address"
                                         />
@@ -159,7 +159,7 @@ watch(
                                         <Input
                                             id="city"
                                             name="city"
-                                            :default-value="dealership.city"
+                                            :default-value="company.city"
                                             required
                                             placeholder="City"
                                         />
@@ -173,7 +173,7 @@ watch(
                                         <Input
                                             id="state"
                                             name="state"
-                                            :default-value="dealership.state"
+                                            :default-value="company.state"
                                             required
                                             placeholder="State"
                                         />
@@ -187,7 +187,7 @@ watch(
                                         <Input
                                             id="zip_code"
                                             name="zip_code"
-                                            :default-value="dealership.zipCode"
+                                            :default-value="company.zipCode"
                                             required
                                             placeholder="Zip Code"
                                         />
@@ -203,7 +203,7 @@ watch(
                                         <Input
                                             id="phone"
                                             name="phone"
-                                            :default-value="dealership.phone"
+                                            :default-value="company.phone"
                                             placeholder="999-999-9999"
                                         />
                                         <InputError :message="errors.phone" />
@@ -219,7 +219,7 @@ watch(
                                             id="current_solution_name"
                                             name="current_solution_name"
                                             :default-value="
-                                                dealership.currentSolutionName
+                                                company.currentSolutionName
                                             "
                                         />
                                         <InputError
@@ -237,7 +237,7 @@ watch(
                                             id="current_solution_use"
                                             name="current_solution_use"
                                             :default-value="
-                                                dealership.currentSolutionUse
+                                                company.currentSolutionUse
                                             "
                                         />
                                         <InputError
@@ -254,7 +254,7 @@ watch(
                                         <Textarea
                                             id="notes"
                                             name="notes"
-                                            :default-value="dealership.notes"
+                                            :default-value="company.notes"
                                             placeholder="Add note..."
                                         />
                                         <InputError :message="errors.notes" />
@@ -272,7 +272,7 @@ watch(
                                 <Select
                                     id="status"
                                     name="status"
-                                    :default-value="dealership.status"
+                                    :default-value="company.status"
                                 >
                                     <SelectTrigger class="w-full">
                                         <SelectValue
@@ -299,7 +299,7 @@ watch(
                                 <Select
                                     id="rating"
                                     name="rating"
-                                    :default-value="dealership.rating"
+                                    :default-value="company.rating"
                                 >
                                     <SelectTrigger class="w-full">
                                         <SelectValue
@@ -327,7 +327,7 @@ watch(
                                     Consultants
                                     <Badge variant="outline" class="ml-2"
                                         >{{
-                                            dealership.users.data.length
+                                            company.users.data.length
                                         }}
                                         selected</Badge
                                     >
@@ -338,7 +338,7 @@ watch(
                                     class="divide-y divide-zinc-200 dark:divide-zinc-700"
                                 >
                                     <template
-                                        v-for="user in dealership.users.data"
+                                        v-for="user in company.users.data"
                                         :key="user.id"
                                     >
                                         <span class="py-2 text-sm flex items-center justify-between gap-2">

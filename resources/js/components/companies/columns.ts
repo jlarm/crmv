@@ -4,9 +4,9 @@ import { Link } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowUpDown } from 'lucide-vue-next';
-import { show } from '@/actions/App/Http/Controllers/DealershipController'
+import { show } from '@/actions/App/Http/Controllers/CompanyController'
 
-export interface Dealership {
+export interface Company {
     id: number;
     name: string;
     city: string;
@@ -19,7 +19,7 @@ export interface Dealership {
     ratingVariant: 'outline' | 'destructive';
 }
 
-export function createColumns(onSort: (column: string) => void): ColumnDef<Dealership>[] {
+export function createColumns(onSort: (column: string) => void): ColumnDef<Company>[] {
     return [
         {
             accessorKey: 'name',
@@ -76,11 +76,11 @@ export function createColumns(onSort: (column: string) => void): ColumnDef<Deale
                 );
             },
             cell: ({ row }) => {
-                const dealership = row.original;
+                const company = row.original;
                 return h(
                     Badge,
-                    { variant: dealership.statusVariant },
-                    () => dealership.statusLabel,
+                    { variant: company.statusVariant },
+                    () => company.statusLabel,
                 );
             },
         },
@@ -102,11 +102,11 @@ export function createColumns(onSort: (column: string) => void): ColumnDef<Deale
                 );
             },
             cell: ({ row }) => {
-                const dealership = row.original;
+                const company = row.original;
                 return h(
                     Badge,
-                    { variant: dealership.ratingVariant },
-                    () => dealership.ratingLabel,
+                    { variant: company.ratingVariant },
+                    () => company.ratingLabel,
                 );
             },
         },
@@ -115,10 +115,10 @@ export function createColumns(onSort: (column: string) => void): ColumnDef<Deale
             size: 100,
             header: '',
             cell: ({ row }) => {
-                const dealership = row.original;
+                const company = row.original;
                 return h(
                     Link,
-                    { href: show.url(dealership.id) },
+                    { href: show.url(company.id) },
                     () => h(
                         Button,
                         { variant: 'ghost', size: 'sm', as: 'span' },

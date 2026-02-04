@@ -51,7 +51,7 @@ function updateFilter(key: keyof Props['modelValue'], value: string): void {
                 :model-value="modelValue.search"
                 @update:model-value="updateFilter('search', $event)"
                 type="text"
-                placeholder="Search dealerships..."
+                placeholder="Search companies..."
                 class="pl-9"
             />
         </div>

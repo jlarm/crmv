@@ -94,7 +94,7 @@ const table = useVueTable({
                 <TableRow v-else>
                     <TableCell :colspan="columns.length" class="h-24 text-center">
                         <div class="text-muted-foreground">
-                            No dealerships found.
+                            No companies found.
                         </div>
                     </TableCell>
                 </TableRow>

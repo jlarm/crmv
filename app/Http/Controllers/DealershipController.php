@@ -29,7 +29,7 @@ final class DealershipController extends Controller
             ->through(fn ($dealership) => DealershipResource::make($dealership)->resolve());
 
         return Inertia::render('Dashboard', [
-            'dealerships' => $dealerships,
+            'companies' => $dealerships,
             'filters' => $request->only(['search', 'status', 'rating', 'sort', 'direction']),
             'filterOptions' => [
                 'statuses' => [
@@ -53,8 +53,8 @@ final class DealershipController extends Controller
             'contacts',
         ]);
 
-        return Inertia::render('Dealership/Show', [
-            'dealership' => DealershipShowResource::make($dealership)->resolve(),
+        return Inertia::render('Company/Show', [
+            'company' => DealershipShowResource::make($dealership)->resolve(),
         ]);
     }
 

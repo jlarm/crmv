@@ -6,7 +6,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import { useTableFilters } from '@/composables/useTableFilters';
 import LoadingOverlay from '@/components/LoadingOverlay.vue';
-import DealershipFilters from '@/components/DealershipFilters.vue';
+import CompanyFilters from '@/components/CompanyFilters.vue';
 import { Button } from '@/components/ui/button';
 import {
     ChevronLeft,
@@ -15,10 +15,10 @@ import {
     ChevronsRight,
 } from 'lucide-vue-next';
 import {
-    type Dealership,
+    type Company,
     createColumns,
-} from '@/components/dealerships/columns';
-import DataTable from '@/components/dealerships/DataTable.vue';
+} from '@/components/companies/columns';
+import DataTable from '@/components/companies/DataTable.vue';
 
 interface FilterOption {
     value: string;
@@ -26,8 +26,8 @@ interface FilterOption {
 }
 
 interface Props {
-    dealerships: {
-        data: Dealership[];
+    companies: {
+        data: Company[];
         links: Array<{ url: string | null; label: string; active: boolean }>;
         current_page: number;
         last_page: number;
@@ -73,7 +73,7 @@ const { filters, resetFilters, hasActiveFilters } = useTableFilters({
                 : 'asc',
     },
     debounceMs: 500,
-    onlyProps: ['dealerships', 'filters'],
+    onlyProps: ['companies', 'filters'],
 });
 
 function handleSort(column: string): void {
@@ -104,14 +104,14 @@ function goToPage(url: string | null): void {
 }
 
 const firstPageUrl = computed(() => {
-    const firstPageLink = props.dealerships.links.find(
+    const firstPageLink = props.companies.links.find(
         (link) => link.label === '1',
     );
     return firstPageLink?.url;
 });
 
 const lastPageUrl = computed(() => {
-    const lastPageLink = props.dealerships.links
+    const lastPageLink = props.companies.links
         .slice(0, -1)
         .reverse()
         .find((link) => !link.label.includes('Previous'));
@@ -119,14 +119,14 @@ const lastPageUrl = computed(() => {
 });
 
 const prevPageUrl = computed(() => {
-    const prevLink = props.dealerships.links.find((link) =>
+    const prevLink = props.companies.links.find((link) =>
         link.label.includes('Previous'),
     );
     return prevLink?.url;
 });
 
 const nextPageUrl = computed(() => {
-    const nextLink = props.dealerships.links.find((link) =>
+    const nextLink = props.companies.links.find((link) =>
         link.label.includes('Next'),
     );
     return nextLink?.url;
@@ -147,7 +147,7 @@ const breadcrumbs: BreadcrumbItem[] = [
         <div class="space-y-6 p-6">
             <LoadingOverlay />
 
-            <DealershipFilters
+            <CompanyFilters
                 v-model="filters"
                 :statuses="filterOptions.statuses"
                 :ratings="filterOptions.ratings"
@@ -157,14 +157,14 @@ const breadcrumbs: BreadcrumbItem[] = [
 
             <DataTable
                 :columns="columns"
-                :data="dealerships.data"
+                :data="companies.data"
                 :sorting="currentSorting"
             />
 
             <div class="flex items-center justify-between">
                 <div class="text-sm text-muted-foreground">
-                    Showing {{ dealerships.from || 0 }} to
-                    {{ dealerships.to || 0 }} of {{ dealerships.total }} results
+                    Showing {{ companies.from || 0 }} to
+                    {{ companies.to || 0 }} of {{ companies.total }} results
                 </div>
 
                 <div class="flex items-center gap-2">
@@ -172,7 +172,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                         variant="outline"
                         size="icon"
                         :disabled="
-                            !firstPageUrl || dealerships.current_page === 1
+                            !firstPageUrl || companies.current_page === 1
                         "
                         @click="goToPage(firstPageUrl)"
                     >
@@ -189,8 +189,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 
                     <div class="flex items-center gap-1">
                         <span class="text-sm">
-                            Page {{ dealerships.current_page }} of
-                            {{ dealerships.last_page }}
+                            Page {{ companies.current_page }} of
+                            {{ companies.last_page }}
                         </span>
                     </div>
 
@@ -207,7 +207,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                         size="icon"
                         :disabled="
                             !lastPageUrl ||
-                            dealerships.current_page === dealerships.last_page
+                            companies.current_page === companies.last_page
                         "
                         @click="goToPage(lastPageUrl)"
                     >

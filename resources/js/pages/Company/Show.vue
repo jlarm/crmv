@@ -2,18 +2,25 @@
 import { Head, Form, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Button } from '@/components/ui/button';
-import { Trash2, Save, Minus } from 'lucide-vue-next';
+import {
+    MoreVertical,
+    Trash2,
+    Save,
+    Minus,
+    Star,
+    Phone,
+    Mail,
+    Linkedin,
+} from 'lucide-vue-next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import CompanyController, {
-    show,
-} from '@/actions/App/Http/Controllers/CompanyController';
+import { show, update } from '@/routes/company';
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Textarea } from '@/components/ui/textarea';
 import type { BreadcrumbItem } from '@/types';
 import { Separator } from '@/components/ui/separator';
 import InputError from '@/components/InputError.vue';
-import { watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -31,6 +38,15 @@ import {
     ItemSeparator,
     ItemTitle,
 } from '@/components/ui/item';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
 
 interface Company {
     id: number;
@@ -45,9 +61,34 @@ interface Company {
     currentSolutionUse: string;
     status: string;
     rating: string;
+    stores: Store[];
+    contacts: Contact[];
     users: {
         data: User[];
     };
+}
+
+interface Store {
+    id: number;
+    name: string;
+    address: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    phone: string;
+    currentSolutionName: string;
+    currentSolutionUse: string;
+    notes: string;
+}
+
+interface Contact {
+    id: number;
+    name: string;
+    email: string | null;
+    phone: string | null;
+    position: string | null;
+    linkedinLink: string | null;
+    primaryContact: boolean;
 }
 
 interface User {
@@ -63,12 +104,43 @@ const props = defineProps<Props>();
 
 const page = usePage();
 
-const breadcrumbItems: BreadcrumbItem[] = [
-    {
-        title: props.company.name,
-        href: show(props.company.id).url,
-    },
-];
+const company = computed(() => {
+    return (
+        props.company ??
+        ((page.props.value?.company as Company | undefined) ?? null)
+    );
+});
+
+const breadcrumbItems = computed<BreadcrumbItem[]>(() => {
+    if (!company.value?.id) {
+        return [];
+    }
+
+    return [
+        {
+            title: company.value.name,
+            href: show(company.value.id).url,
+        },
+    ];
+});
+
+const activeTab = ref<'details' | 'stores' | 'contacts'>('details');
+const isStoreCreateOpen = ref(false);
+const isStoreEditOpen = ref(false);
+const editingStore = ref<Store | null>(null);
+const isContactCreateOpen = ref(false);
+const isContactEditOpen = ref(false);
+const editingContact = ref<Contact | null>(null);
+
+function openStoreEdit(store: Store): void {
+    editingStore.value = store;
+    isStoreEditOpen.value = true;
+}
+
+function openContactEdit(contact: Contact): void {
+    editingContact.value = contact;
+    isContactEditOpen.value = true;
+}
 
 watch(
     () => page.props.flash?.success,
@@ -82,13 +154,11 @@ watch(
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbItems">
+        <div v-if="!company?.id" class="px-8 py-6 text-sm text-slate-500">
+            Loading company...
+        </div>
         <Head :title="company.name" />
-        <Form
-            v-bind="CompanyController.update.form(company.id)"
-            class="px-8 py-3"
-            set-defaults-on-success
-            v-slot="{ errors, processing, isDirty }"
-        >
+        <div class="px-8 py-3">
             <div class="flex shrink-0 items-center justify-between gap-4">
                 <div class="flex flex-col">
                     <h1
@@ -108,20 +178,58 @@ watch(
                         }}</Badge>
                     </div>
                 </div>
-                <div class="flex items-center gap-3">
-                    <Button variant="destructive" :disabled="processing">
-                        <Trash2 />
-                        Delete
-                    </Button>
-                    <Button :disabled="processing || !isDirty">
-                        <Save />
-                        Update
-                    </Button>
-                </div>
             </div>
 
-            <div class="mx-auto mt-5 w-full">
-                <div class="grid grid-cols-1 gap-5 md:grid-cols-3">
+            <div class="mt-6 border-b border-slate-200 dark:border-slate-800">
+                <nav class="flex gap-8 text-sm font-medium">
+                    <button
+                        type="button"
+                        class="pb-3 transition-colors"
+                        :class="
+                            activeTab === 'details'
+                                ? 'text-orange-600 border-b-2 border-orange-500'
+                                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-200'
+                        "
+                        @click="activeTab = 'details'"
+                    >
+                        Info
+                    </button>
+                    <button
+                        type="button"
+                        class="pb-3 transition-colors"
+                        :class="
+                            activeTab === 'stores'
+                                ? 'text-orange-600 border-b-2 border-orange-500'
+                                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-200'
+                        "
+                        @click="activeTab = 'stores'"
+                    >
+                        Stores
+                    </button>
+                    <button
+                        type="button"
+                        class="pb-3 transition-colors"
+                        :class="
+                            activeTab === 'contacts'
+                                ? 'text-orange-600 border-b-2 border-orange-500'
+                                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-200'
+                        "
+                        @click="activeTab = 'contacts'"
+                    >
+                        Contacts
+                    </button>
+                </nav>
+            </div>
+
+            <div class="mx-auto mt-5 w-full" v-if="activeTab === 'details'">
+                <Form
+                    v-if="company?.id"
+                    :action="update(company.id).url"
+                    method="put"
+                    class="grid grid-cols-1 gap-5 md:grid-cols-3"
+                    set-defaults-on-success
+                    v-slot="{ errors, processing, isDirty }"
+                >
                     <Card class="col-span-2">
                         <div class="space-y-5 px-5">
                             <FieldGroup>
@@ -191,9 +299,7 @@ watch(
                                             required
                                             placeholder="Zip Code"
                                         />
-                                        <InputError
-                                            :message="errors.zip_code"
-                                        />
+                                        <InputError :message="errors.zip_code" />
                                     </Field>
 
                                     <Field class="col-span-full">
@@ -218,14 +324,8 @@ watch(
                                         <Input
                                             id="current_solution_name"
                                             name="current_solution_name"
-                                            :default-value="
-                                                company.currentSolutionName
-                                            "
-                                        />
-                                        <InputError
-                                            :message="
-                                                errors.current_solution_name
-                                            "
+                                            :default-value="company.currentSolutionName"
+                                            placeholder="Solution Name"
                                         />
                                     </Field>
 
@@ -236,128 +336,532 @@ watch(
                                         <Input
                                             id="current_solution_use"
                                             name="current_solution_use"
-                                            :default-value="
-                                                company.currentSolutionUse
-                                            "
-                                        />
-                                        <InputError
-                                            :message="
-                                                errors.current_solution_use
-                                            "
+                                            :default-value="company.currentSolutionUse"
+                                            placeholder="Solution Use"
                                         />
                                     </Field>
 
                                     <Field class="col-span-full">
-                                        <FieldLabel for="notes"
-                                            >Notes</FieldLabel
-                                        >
+                                        <FieldLabel for="notes">Notes</FieldLabel>
                                         <Textarea
                                             id="notes"
                                             name="notes"
                                             :default-value="company.notes"
-                                            placeholder="Add note..."
+                                            placeholder="Notes"
                                         />
-                                        <InputError :message="errors.notes" />
+                                    </Field>
+
+                                    <Field class="col-span-3">
+                                        <FieldLabel for="status">Status</FieldLabel>
+                                        <Select name="status">
+                                            <SelectTrigger>
+                                                <SelectValue
+                                                    :placeholder="company.status"
+                                                />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="active"
+                                                    >Active</SelectItem
+                                                >
+                                                <SelectItem value="inactive"
+                                                    >Inactive</SelectItem
+                                                >
+                                            </SelectContent>
+                                        </Select>
+                                    </Field>
+
+                                    <Field class="col-span-3">
+                                        <FieldLabel for="rating">Rating</FieldLabel>
+                                        <Select name="rating">
+                                            <SelectTrigger>
+                                                <SelectValue
+                                                    :placeholder="company.rating"
+                                                />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="hot">Hot</SelectItem>
+                                                <SelectItem value="warm">Warm</SelectItem>
+                                                <SelectItem value="cold">Cold</SelectItem>
+                                            </SelectContent>
+                                        </Select>
                                     </Field>
                                 </div>
                             </FieldGroup>
                         </div>
                     </Card>
-                    <div class="space-y-5">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Status</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <Select
-                                    id="status"
-                                    name="status"
-                                    :default-value="company.status"
-                                >
-                                    <SelectTrigger class="w-full">
-                                        <SelectValue
-                                            placeholder="Select a status"
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="active"
-                                            >Active</SelectItem
-                                        >
-                                        <SelectItem value="inactive"
-                                            >Inactive</SelectItem
-                                        >
-                                    </SelectContent>
-                                </Select>
-                            </CardContent>
-                        </Card>
 
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Rating</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <Select
-                                    id="rating"
-                                    name="rating"
-                                    :default-value="company.rating"
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Users</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <ItemGroup>
+                                <Item
+                                    v-for="user in company.users.data"
+                                    :key="user.id"
                                 >
-                                    <SelectTrigger class="w-full">
-                                        <SelectValue
-                                            placeholder="Select a rating"
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="hot">Hot</SelectItem>
-                                        <SelectItem value="warm"
-                                            >Warm</SelectItem
+                                    <ItemContent>
+                                        <ItemTitle>{{ user.name }}</ItemTitle>
+                                    </ItemContent>
+                                    <ItemActions>
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            class="shrink-0"
                                         >
-                                        <SelectItem value="cold"
-                                            >Cold</SelectItem
-                                        >
-                                    </SelectContent>
-                                </Select>
-                            </CardContent>
-                        </Card>
+                                            <Minus class="h-4 w-4" />
+                                        </Button>
+                                    </ItemActions>
+                                    <ItemSeparator />
+                                </Item>
+                            </ItemGroup>
+                        </CardContent>
+                    </Card>
 
-                        <Card>
-                            <CardHeader>
-                                <CardTitle
-                                    class="flex items-center justify-between"
-                                >
-                                    Consultants
-                                    <Badge variant="outline" class="ml-2"
-                                        >{{
-                                            company.users.data.length
-                                        }}
-                                        selected</Badge
-                                    >
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <ItemGroup
-                                    class="divide-y divide-zinc-200 dark:divide-zinc-700"
-                                >
-                                    <template
-                                        v-for="user in company.users.data"
-                                        :key="user.id"
-                                    >
-                                        <span class="py-2 text-sm flex items-center justify-between gap-2">
-                                            {{ user.name }}
-                                            <Button
-                                                size="icon-sm"
-                                                variant="outline"
-                                                class="rounded-full"
-                                            >
-                                                <Minus />
-                                            </Button>
-                                        </span>
-                                    </template>
-                                </ItemGroup>
-                            </CardContent>
-                        </Card>
+                    <div class="col-span-full flex justify-end gap-3">
+                        <Button variant="destructive" :disabled="processing">
+                            <Trash2 />
+                            Delete
+                        </Button>
+                        <Button :disabled="processing || !isDirty">
+                            <Save />
+                            Update
+                        </Button>
                     </div>
-                </div>
+                </Form>
             </div>
-        </Form>
+
+            <div class="mx-auto mt-6 w-full" v-if="activeTab === 'stores'">
+                <div class="flex items-center justify-between">
+                    <h2
+                        class="text-lg font-semibold text-slate-900 dark:text-slate-100"
+                    >
+                        Stores
+                    </h2>
+                    <Dialog v-model:open="isStoreCreateOpen">
+                        <DialogTrigger as-child>
+                            <Button>Create Store</Button>
+                        </DialogTrigger>
+                        <DialogContent class="sm:max-w-2xl">
+                            <DialogHeader>
+                                <DialogTitle>Create Store</DialogTitle>
+                                <DialogDescription>
+                                    Add a new store for this company.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <Form
+                                :action="`/companies/${company.id}/stores`"
+                                method="post"
+                                class="grid grid-cols-2 gap-4"
+                                v-slot="{ errors, processing }"
+                            >
+                                <Field class="col-span-2">
+                                    <FieldLabel for="store_name">Name</FieldLabel>
+                                    <Input id="store_name" name="name" required />
+                                    <InputError :message="errors.name" />
+                                </Field>
+                                <Field class="col-span-2">
+                                    <FieldLabel for="store_address"
+                                        >Address</FieldLabel
+                                    >
+                                    <Input id="store_address" name="address" />
+                                </Field>
+                                <Field>
+                                    <FieldLabel for="store_city">City</FieldLabel>
+                                    <Input id="store_city" name="city" />
+                                </Field>
+                                <Field>
+                                    <FieldLabel for="store_state">State</FieldLabel>
+                                    <Input id="store_state" name="state" />
+                                </Field>
+                                <Field>
+                                    <FieldLabel for="store_zip">Zip</FieldLabel>
+                                    <Input id="store_zip" name="zip_code" />
+                                </Field>
+                                <Field>
+                                    <FieldLabel for="store_phone">Phone</FieldLabel>
+                                    <Input id="store_phone" name="phone" />
+                                </Field>
+                                <Field class="col-span-2">
+                                    <FieldLabel for="store_solution_name"
+                                        >Current Solution Name</FieldLabel
+                                    >
+                                    <Input
+                                        id="store_solution_name"
+                                        name="current_solution_name"
+                                    />
+                                </Field>
+                                <Field class="col-span-2">
+                                    <FieldLabel for="store_solution_use"
+                                        >Current Solution Use</FieldLabel
+                                    >
+                                    <Input
+                                        id="store_solution_use"
+                                        name="current_solution_use"
+                                    />
+                                </Field>
+                                <Field class="col-span-2">
+                                    <FieldLabel for="store_notes">Notes</FieldLabel>
+                                    <Textarea id="store_notes" name="notes" />
+                                </Field>
+                                <DialogFooter class="col-span-2">
+                                    <Button :disabled="processing">Create</Button>
+                                </DialogFooter>
+                            </Form>
+                        </DialogContent>
+                    </Dialog>
+                </div>
+                <div class="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                    <Card
+                        v-for="store in company.stores"
+                        :key="store.id"
+                        class="rounded-2xl border border-slate-200 shadow-sm transition hover:shadow-md dark:border-slate-800"
+                    >
+                        <CardHeader>
+                            <div class="space-y-1">
+                                <div class="flex w-full items-center justify-between gap-4">
+                                    <CardTitle class="text-base font-semibold text-slate-900 dark:text-slate-100">
+                                        {{ store.name }}
+                                    </CardTitle>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        class="text-slate-500 hover:text-slate-700"
+                                        @click="openStoreEdit(store)"
+                                        aria-label="Edit store"
+                                    >
+                                        <MoreVertical class="h-4 w-4" />
+                                    </Button>
+                                </div>
+                                <p class="text-xs text-slate-500">
+                                    {{ store.address || '—' }}
+                                </p>
+                                <p class="text-xs text-slate-500">
+                                    {{ store.city }}{{ store.state ? `, ${store.state}` : '' }}
+                                    {{ store.zipCode || '' }}
+                                </p>
+                                <p class="text-xs text-slate-500">
+                                    {{ store.phone || '—' }}
+                                </p>
+                            </div>
+                        </CardHeader>
+                    </Card>
+                    <p
+                        v-if="company.stores.length === 0"
+                        class="text-xs text-muted-foreground"
+                    >
+                        No stores yet.
+                    </p>
+                </div>
+
+                <Dialog v-model:open="isStoreEditOpen">
+                    <DialogContent class="sm:max-w-2xl">
+                        <DialogHeader>
+                            <DialogTitle>Edit Store</DialogTitle>
+                            <DialogDescription>
+                                Update store details.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <Form
+                            v-if="editingStore"
+                            :action="`/companies/${company.id}/stores/${editingStore.id}`"
+                            method="put"
+                            class="grid grid-cols-2 gap-4"
+                            v-slot="{ errors, processing }"
+                        >
+                            <Field class="col-span-2">
+                                <FieldLabel for="store_edit_name">Name</FieldLabel>
+                                <Input
+                                    id="store_edit_name"
+                                    name="name"
+                                    :default-value="editingStore.name"
+                                    required
+                                />
+                                <InputError :message="errors.name" />
+                            </Field>
+                            <Field class="col-span-2">
+                                <FieldLabel for="store_edit_address"
+                                    >Address</FieldLabel
+                                >
+                                <Input
+                                    id="store_edit_address"
+                                    name="address"
+                                    :default-value="editingStore.address"
+                                />
+                            </Field>
+                            <Field>
+                                <FieldLabel for="store_edit_city">City</FieldLabel>
+                                <Input
+                                    id="store_edit_city"
+                                    name="city"
+                                    :default-value="editingStore.city"
+                                />
+                            </Field>
+                            <Field>
+                                <FieldLabel for="store_edit_state">State</FieldLabel>
+                                <Input
+                                    id="store_edit_state"
+                                    name="state"
+                                    :default-value="editingStore.state"
+                                />
+                            </Field>
+                            <Field>
+                                <FieldLabel for="store_edit_zip">Zip</FieldLabel>
+                                <Input
+                                    id="store_edit_zip"
+                                    name="zip_code"
+                                    :default-value="editingStore.zipCode"
+                                />
+                            </Field>
+                            <Field>
+                                <FieldLabel for="store_edit_phone">Phone</FieldLabel>
+                                <Input
+                                    id="store_edit_phone"
+                                    name="phone"
+                                    :default-value="editingStore.phone"
+                                />
+                            </Field>
+                            <Field class="col-span-2">
+                                <FieldLabel for="store_edit_solution_name"
+                                    >Current Solution Name</FieldLabel
+                                >
+                                <Input
+                                    id="store_edit_solution_name"
+                                    name="current_solution_name"
+                                    :default-value="editingStore.currentSolutionName"
+                                />
+                            </Field>
+                            <Field class="col-span-2">
+                                <FieldLabel for="store_edit_solution_use"
+                                    >Current Solution Use</FieldLabel
+                                >
+                                <Input
+                                    id="store_edit_solution_use"
+                                    name="current_solution_use"
+                                    :default-value="editingStore.currentSolutionUse"
+                                />
+                            </Field>
+                            <Field class="col-span-2">
+                                <FieldLabel for="store_edit_notes">Notes</FieldLabel>
+                                <Textarea
+                                    id="store_edit_notes"
+                                    name="notes"
+                                    :default-value="editingStore.notes"
+                                />
+                            </Field>
+                            <DialogFooter class="col-span-2">
+                                <Button :disabled="processing">Save</Button>
+                            </DialogFooter>
+                        </Form>
+                    </DialogContent>
+                </Dialog>
+            </div>
+
+            <div class="mx-auto mt-6 w-full" v-if="activeTab === 'contacts'">
+                <div class="flex items-center justify-between">
+                    <h2
+                        class="text-lg font-semibold text-slate-900 dark:text-slate-100"
+                    >
+                        Contacts
+                    </h2>
+                    <Dialog v-model:open="isContactCreateOpen">
+                        <DialogTrigger as-child>
+                            <Button>Create Contact</Button>
+                        </DialogTrigger>
+                        <DialogContent class="sm:max-w-xl">
+                            <DialogHeader>
+                                <DialogTitle>Create Contact</DialogTitle>
+                                <DialogDescription>
+                                    Add a new contact for this company.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <Form
+                                :action="`/companies/${company.id}/contacts`"
+                                method="post"
+                                class="grid grid-cols-2 gap-4"
+                                v-slot="{ errors, processing }"
+                            >
+                                <Field class="col-span-2">
+                                    <FieldLabel for="contact_name">Name</FieldLabel>
+                                    <Input id="contact_name" name="name" required />
+                                    <InputError :message="errors.name" />
+                                </Field>
+                                <Field>
+                                    <FieldLabel for="contact_email">Email</FieldLabel>
+                                    <Input id="contact_email" name="email" />
+                                </Field>
+                                <Field>
+                                    <FieldLabel for="contact_phone">Phone</FieldLabel>
+                                    <Input id="contact_phone" name="phone" />
+                                </Field>
+                                <Field class="col-span-2">
+                                    <FieldLabel for="contact_position"
+                                        >Position</FieldLabel
+                                    >
+                                    <Input id="contact_position" name="position" />
+                                </Field>
+                                <Field class="col-span-2">
+                                    <FieldLabel for="contact_linkedin"
+                                        >LinkedIn</FieldLabel
+                                    >
+                                    <Input id="contact_linkedin" name="linkedin_link" />
+                                </Field>
+                                <Field class="col-span-2">
+                                    <label class="flex items-center gap-2 text-sm">
+                                        <input
+                                            type="checkbox"
+                                            name="primary_contact"
+                                            value="1"
+                                        />
+                                        Primary contact
+                                    </label>
+                                </Field>
+                                <DialogFooter class="col-span-2">
+                                    <Button :disabled="processing">Create</Button>
+                                </DialogFooter>
+                            </Form>
+                        </DialogContent>
+                    </Dialog>
+                </div>
+                <div class="mt-6 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                    <Card
+                        v-for="contact in company.contacts"
+                        :key="contact.id"
+                        class="rounded-2xl gap-2 text-xs border border-slate-200 shadow-sm transition hover:shadow-md dark:border-slate-800"
+                    >
+                        <CardHeader class="text-xs">
+                            <div class="flex w-full items-center justify-between gap-4">
+                                <div class="flex items-center gap-3">
+                                    <CardTitle class="text-base font-semibold text-slate-900 dark:text-slate-100">
+                                        {{ contact.name }}
+                                    </CardTitle>
+                                    <Star
+                                        v-if="contact.primaryContact"
+                                        class="h-3 w-3 text-amber-500"
+                                        fill="currentColor"
+                                    />
+                                </div>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    class="text-slate-500 hover:text-slate-700"
+                                    @click="openContactEdit(contact)"
+                                    aria-label="Edit contact"
+                                >
+                                    <MoreVertical class="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </CardHeader>
+                        <CardContent class="space-y-3 text-xs text-slate-600">
+                            <span
+                                v-if="contact.position"
+                                class="inline-flex w-fit items-center rounded-xl bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700"
+                            >
+                                {{ contact.position }}
+                            </span>
+                            <div class="space-y-2 text-xs text-slate-600">
+                                <div v-if="contact.phone" class="flex items-center gap-3">
+                                    <Phone class="h-3 w-3 text-slate-500" />
+                                    <span>{{ contact.phone }}</span>
+                                </div>
+                                <div v-if="contact.email" class="flex items-center gap-3">
+                                    <Mail class="h-3 w-3 text-slate-500" />
+                                    <span>{{ contact.email }}</span>
+                                </div>
+                                <div v-if="contact.linkedinLink" class="flex items-center gap-3">
+                                    <Linkedin class="h-5 w-5 text-slate-500" />
+                                    <span>LinkedIn</span>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <p
+                        v-if="company.contacts.length === 0"
+                        class="text-xs text-muted-foreground"
+                    >
+                        No contacts yet.
+                    </p>
+                </div>
+
+                <Dialog v-model:open="isContactEditOpen">
+                    <DialogContent class="sm:max-w-xl">
+                        <DialogHeader>
+                            <DialogTitle>Edit Contact</DialogTitle>
+                            <DialogDescription>
+                                Update contact details.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <Form
+                            v-if="editingContact"
+                            :action="`/companies/${company.id}/contacts/${editingContact.id}`"
+                            method="put"
+                            class="grid grid-cols-2 gap-4"
+                            v-slot="{ errors, processing }"
+                        >
+                            <Field class="col-span-2">
+                                <FieldLabel for="contact_edit_name">Name</FieldLabel>
+                                <Input
+                                    id="contact_edit_name"
+                                    name="name"
+                                    :default-value="editingContact.name"
+                                    required
+                                />
+                                <InputError :message="errors.name" />
+                            </Field>
+                            <Field>
+                                <FieldLabel for="contact_edit_email">Email</FieldLabel>
+                                <Input
+                                    id="contact_edit_email"
+                                    name="email"
+                                    :default-value="editingContact.email || ''"
+                                />
+                            </Field>
+                            <Field>
+                                <FieldLabel for="contact_edit_phone">Phone</FieldLabel>
+                                <Input
+                                    id="contact_edit_phone"
+                                    name="phone"
+                                    :default-value="editingContact.phone || ''"
+                                />
+                            </Field>
+                            <Field class="col-span-2">
+                                <FieldLabel for="contact_edit_position"
+                                    >Position</FieldLabel
+                                >
+                                <Input
+                                    id="contact_edit_position"
+                                    name="position"
+                                    :default-value="editingContact.position || ''"
+                                />
+                            </Field>
+                            <Field class="col-span-2">
+                                <FieldLabel for="contact_edit_linkedin"
+                                    >LinkedIn</FieldLabel
+                                >
+                                <Input
+                                    id="contact_edit_linkedin"
+                                    name="linkedin_link"
+                                    :default-value="editingContact.linkedinLink || ''"
+                                />
+                            </Field>
+                            <Field class="col-span-2">
+                                <label class="flex items-center gap-2 text-sm">
+                                    <input
+                                        type="checkbox"
+                                        name="primary_contact"
+                                        value="1"
+                                        :checked="editingContact.primaryContact"
+                                    />
+                                    Primary contact
+                                </label>
+                            </Field>
+                            <DialogFooter class="col-span-2">
+                                <Button :disabled="processing">Save</Button>
+                            </DialogFooter>
+                        </Form>
+                    </DialogContent>
+                </Dialog>
+            </div>
+        </div>
     </AppLayout>
 </template>

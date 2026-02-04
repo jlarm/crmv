@@ -45,25 +45,25 @@ final class DealershipController extends Controller
         ]);
     }
 
-    public function show(Company $dealership): Response
+    public function show(Company $company): Response
     {
-        $dealership->load([
+        $company->load([
             'users' => fn ($query) => $query->select('id', 'name'),
             'stores',
             'contacts',
         ]);
 
         return Inertia::render('Company/Show', [
-            'company' => DealershipShowResource::make($dealership)->resolve(),
+            'company' => DealershipShowResource::make($company)->resolve(),
         ]);
     }
 
-    public function update(DealershipUpdateRequest $request, Company $dealership): RedirectResponse
+    public function update(DealershipUpdateRequest $request, Company $company): RedirectResponse
     {
-        $dealership->update($request->validated());
+        $company->update($request->validated());
 
         return redirect()
-            ->route('dealerships.show', $dealership)
+            ->route('company.show', $company)
             ->with('success', 'Dealership updated successfully.');
     }
 }

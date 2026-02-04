@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\CompanyContactController;
+use App\Http\Controllers\CompanyStoreController;
 use App\Http\Controllers\DealershipController;
 use App\Http\Controllers\OrganizationController;
 use Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests;
@@ -24,9 +26,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::put('organization/{organization}/switch', [OrganizationController::class, 'switch'])
         ->name('organization.switch');
+
+    Route::post('companies/{company}/stores', [CompanyStoreController::class, 'store'])
+        ->name('companies.stores.store');
+    Route::put('companies/{company}/stores/{store}', [CompanyStoreController::class, 'update'])
+        ->name('companies.stores.update');
+
+    Route::post('companies/{company}/contacts', [CompanyContactController::class, 'store'])
+        ->name('companies.contacts.store');
+    Route::put('companies/{company}/contacts/{contact}', [CompanyContactController::class, 'update'])
+        ->name('companies.contacts.update');
 });
 
-Route::resource('dealerships', DealershipController::class)
+Route::resource('company', DealershipController::class)
+    ->only(['show', 'update'])
     ->middleware(['auth', 'verified']);
 
 require __DIR__.'/settings.php';

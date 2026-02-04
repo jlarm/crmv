@@ -24,6 +24,31 @@ final class DealershipShowResource extends JsonResource
             'currentSolutionUse' => $this->current_solution_use,
             'status' => $this->status,
             'rating' => $this->rating,
+            'stores' => $this->whenLoaded('stores', function () {
+                return $this->stores->map(fn ($store) => [
+                    'id' => $store->id,
+                    'name' => $store->name,
+                    'address' => $store->address,
+                    'city' => $store->city,
+                    'state' => $store->state,
+                    'zipCode' => $store->zip_code,
+                    'phone' => $store->phone,
+                    'currentSolutionName' => $store->current_solution_name,
+                    'currentSolutionUse' => $store->current_solution_use,
+                    'notes' => $store->notes,
+                ]);
+            }),
+            'contacts' => $this->whenLoaded('contacts', function () {
+                return $this->contacts->map(fn ($contact) => [
+                    'id' => $contact->id,
+                    'name' => $contact->name,
+                    'email' => $contact->email,
+                    'phone' => $contact->phone,
+                    'position' => $contact->position,
+                    'linkedinLink' => $contact->linkedin_link,
+                    'primaryContact' => (bool) $contact->primary_contact,
+                ]);
+            }),
             'users' => UserResource::collection($this->whenLoaded('users')),
         ];
     }

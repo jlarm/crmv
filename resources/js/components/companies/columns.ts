@@ -4,7 +4,7 @@ import { Link } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowUpDown } from 'lucide-vue-next';
-import { show } from '@/actions/App/Http/Controllers/CompanyController'
+import { show } from '@/routes/company'
 
 export interface Company {
     id: number;

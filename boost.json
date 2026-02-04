@@ -1,12 +1,21 @@
 {
     "agents": [
         "claude_code",
-        "phpstorm"
-    ],
-    "editors": [
-        "claude_code",
-        "phpstorm"
+        "cursor",
+        "gemini"
     ],
     "guidelines": true,
-    "herd_mcp": true
+    "herd_mcp": true,
+    "mcp": true,
+    "packages": [
+        "laravel/fortify"
+    ],
+    "sail": false,
+    "skills": [
+        "wayfinder-development",
+        "pest-testing",
+        "inertia-vue-development",
+        "tailwindcss-development",
+        "developing-with-fortify"
+    ]
 }

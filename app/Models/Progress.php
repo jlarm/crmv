@@ -17,7 +17,7 @@ final class Progress extends Model
 
     protected $fillable = [
         'user_id',
-        'dealership_id',
+        'company_id',
         'contact_id',
         'progress_category_id',
         'details',
@@ -29,9 +29,9 @@ final class Progress extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function dealership(): BelongsTo
+    public function company(): BelongsTo
     {
-        return $this->belongsTo(Dealership::class);
+        return $this->belongsTo(Company::class);
     }
 
     public function contact(): BelongsTo

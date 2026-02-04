@@ -8,7 +8,7 @@ use App\Http\Requests\DealershipIndexRequest;
 use App\Http\Requests\DealershipUpdateRequest;
 use App\Http\Resources\DealershipResource;
 use App\Http\Resources\DealershipShowResource;
-use App\Models\Dealership;
+use App\Models\Company;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -17,7 +17,7 @@ final class DealershipController extends Controller
 {
     public function index(DealershipIndexRequest $request): Response
     {
-        $dealerships = Dealership::query()
+        $dealerships = Company::query()
             ->whereNot('status', 'imported')
             ->search($request->input('search'))
             ->withStatus($request->input('status'))
@@ -45,7 +45,7 @@ final class DealershipController extends Controller
         ]);
     }
 
-    public function show(Dealership $dealership): Response
+    public function show(Company $dealership): Response
     {
         $dealership->load([
             'users' => fn ($query) => $query->select('id', 'name'),
@@ -58,7 +58,7 @@ final class DealershipController extends Controller
         ]);
     }
 
-    public function update(DealershipUpdateRequest $request, Dealership $dealership): RedirectResponse
+    public function update(DealershipUpdateRequest $request, Company $dealership): RedirectResponse
     {
         $dealership->update($request->validated());
 

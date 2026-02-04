@@ -15,7 +15,7 @@ final class DealerEmail extends Model
 
     protected $fillable = [
         'user_id',
-        'dealership_id',
+        'company_id',
         'dealer_email_template_id',
         'customize_email',
         'customize_attachment',
@@ -35,9 +35,9 @@ final class DealerEmail extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function dealership(): BelongsTo
+    public function company(): BelongsTo
     {
-        return $this->belongsTo(Dealership::class);
+        return $this->belongsTo(Company::class);
     }
 
     public function dealerEmailTemplate(): BelongsTo

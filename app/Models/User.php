@@ -72,12 +72,22 @@ final class User extends Authenticatable
 
     public function dealerships(): BelongsToMany
     {
-        return $this->belongsToMany(Dealership::class);
+        return $this->companies();
+    }
+
+    public function companies(): BelongsToMany
+    {
+        return $this->belongsToMany(Company::class);
     }
 
     public function ownedDealerships(): HasMany
     {
-        return $this->hasMany(Dealership::class);
+        return $this->ownedCompanies();
+    }
+
+    public function ownedCompanies(): HasMany
+    {
+        return $this->hasMany(Company::class);
     }
 
     public function stores(): HasMany

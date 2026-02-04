@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use Database\Factories\DealershipFactory;
+use Database\Factories\CompanyFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -12,9 +12,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-final class Dealership extends Model
+final class Company extends Model
 {
-    /** @use HasFactory<DealershipFactory> */
+    /** @use HasFactory<CompanyFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -138,9 +138,9 @@ final class Dealership extends Model
             $query->where('organization_id', $user->current_organization_id);
         });
 
-        self::creating(function (self $dealership): void {
-            if (! $dealership->organization_id) {
-                $dealership->organization_id = auth()->user()?->current_organization_id;
+        self::creating(function (self $company): void {
+            if (! $company->organization_id) {
+                $company->organization_id = auth()->user()?->current_organization_id;
             }
         });
     }

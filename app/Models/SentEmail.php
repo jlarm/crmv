@@ -15,7 +15,7 @@ final class SentEmail extends Model
 
     protected $fillable = [
         'user_id',
-        'dealership_id',
+        'company_id',
         'recipient',
         'message_id',
         'subject',
@@ -27,9 +27,9 @@ final class SentEmail extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function dealership(): BelongsTo
+    public function company(): BelongsTo
     {
-        return $this->belongsTo(Dealership::class);
+        return $this->belongsTo(Company::class);
     }
 
     public function emailTrackingEvents(): HasMany

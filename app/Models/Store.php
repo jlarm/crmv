@@ -15,7 +15,7 @@ final class Store extends Model
 
     protected $fillable = [
         'user_id',
-        'dealership_id',
+        'company_id',
         'name',
         'address',
         'city',
@@ -32,8 +32,8 @@ final class Store extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function dealership(): BelongsTo
+    public function company(): BelongsTo
     {
-        return $this->belongsTo(Dealership::class);
+        return $this->belongsTo(Company::class);
     }
 }

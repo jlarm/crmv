@@ -16,7 +16,7 @@ final class Contact extends Model
     use HasFactory;
 
     protected $fillable = [
-        'dealership_id',
+        'company_id',
         'name',
         'email',
         'phone',
@@ -25,9 +25,9 @@ final class Contact extends Model
         'primary_contact',
     ];
 
-    public function dealership(): BelongsTo
+    public function company(): BelongsTo
     {
-        return $this->belongsTo(Dealership::class);
+        return $this->belongsTo(Company::class);
     }
 
     public function progresses(): HasMany

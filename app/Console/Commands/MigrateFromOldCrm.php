@@ -69,10 +69,10 @@ final class MigrateFromOldCrm extends Command
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
 
         $tables = [
-            'dealership_user', 'contact_tag', 'attachables',
+            'company_user', 'dealership_user', 'contact_tag', 'attachables',
             'email_tracking_events', 'sent_emails', 'dealer_emails',
             'dealer_email_templates', 'progresses', 'stores',
-            'contacts', 'dealerships', 'progress_categories',
+            'contacts', 'companies', 'dealerships', 'progress_categories',
             'reminders', 'tags', 'pdf_attachments', 'users',
         ];
 
@@ -159,8 +159,9 @@ final class MigrateFromOldCrm extends Command
         $bar->start();
 
         foreach ($records as $record) {
-            DB::table('dealerships')->insert([
+            DB::table('companies')->insert([
                 'id' => $record->id,
+                'organization_id' => 3,
                 'user_id' => $record->user_id,
                 'name' => $record->name,
                 'address' => $record->address,
@@ -203,7 +204,7 @@ final class MigrateFromOldCrm extends Command
 
         foreach ($records as $record) {
             // Check if dealership exists
-            $dealershipExists = DB::table('dealerships')->where('id', $record->dealership_id)->exists();
+            $dealershipExists = DB::table('companies')->where('id', $record->dealership_id)->exists();
 
             if (! $dealershipExists) {
                 $skipped++;
@@ -214,7 +215,7 @@ final class MigrateFromOldCrm extends Command
 
             DB::table('contacts')->insert([
                 'id' => $record->id,
-                'dealership_id' => $record->dealership_id,
+                'company_id' => $record->dealership_id,
                 'name' => $record->name,
                 'email' => $record->email,
                 'phone' => $record->phone,
@@ -248,7 +249,7 @@ final class MigrateFromOldCrm extends Command
         foreach ($records as $record) {
             // Check if user and dealership exist
             $userExists = DB::table('users')->where('id', $record->user_id)->exists();
-            $dealershipExists = DB::table('dealerships')->where('id', $record->dealership_id)->exists();
+            $dealershipExists = DB::table('companies')->where('id', $record->dealership_id)->exists();
 
             if (! $userExists || ! $dealershipExists) {
                 $skipped++;
@@ -259,7 +260,7 @@ final class MigrateFromOldCrm extends Command
             DB::table('stores')->insert([
                 'id' => $record->id,
                 'user_id' => $record->user_id,
-                'dealership_id' => $record->dealership_id,
+                'company_id' => $record->dealership_id,
                 'name' => $record->name,
                 'address' => $record->address,
                 'city' => $record->city,
@@ -292,7 +293,7 @@ final class MigrateFromOldCrm extends Command
         foreach ($records as $record) {
             // Check if required foreign keys exist
             $userExists = DB::table('users')->where('id', $record->user_id)->exists();
-            $dealershipExists = DB::table('dealerships')->where('id', $record->dealership_id)->exists();
+            $dealershipExists = DB::table('companies')->where('id', $record->dealership_id)->exists();
 
             if (! $userExists || ! $dealershipExists) {
                 $skipped++;
@@ -312,7 +313,7 @@ final class MigrateFromOldCrm extends Command
             DB::table('progresses')->insert([
                 'id' => $record->id,
                 'user_id' => $record->user_id,
-                'dealership_id' => $record->dealership_id,
+                'company_id' => $record->dealership_id,
                 'contact_id' => $record->contact_id,
                 'progress_category_id' => $record->progress_category_id,
                 'details' => $record->details,
@@ -361,7 +362,7 @@ final class MigrateFromOldCrm extends Command
 
         foreach ($records as $record) {
             $userExists = DB::table('users')->where('id', $record->user_id)->exists();
-            $dealershipExists = DB::table('dealerships')->where('id', $record->dealership_id)->exists();
+            $dealershipExists = DB::table('companies')->where('id', $record->dealership_id)->exists();
 
             if (! $userExists || ! $dealershipExists) {
                 $skipped++;
@@ -377,7 +378,7 @@ final class MigrateFromOldCrm extends Command
             DB::table('dealer_emails')->insert([
                 'id' => $record->id,
                 'user_id' => $record->user_id,
-                'dealership_id' => $record->dealership_id,
+                'company_id' => $record->dealership_id,
                 'dealer_email_template_id' => $record->dealer_email_template_id,
                 'customize_email' => $record->customize_email ?? false,
                 'customize_attachment' => $record->customize_attachment ?? false,
@@ -412,7 +413,7 @@ final class MigrateFromOldCrm extends Command
 
         foreach ($records as $record) {
             $userExists = DB::table('users')->where('id', $record->user_id)->exists();
-            $dealershipExists = DB::table('dealerships')->where('id', $record->dealership_id)->exists();
+            $dealershipExists = DB::table('companies')->where('id', $record->dealership_id)->exists();
 
             if (! $userExists || ! $dealershipExists) {
                 $skipped++;
@@ -423,7 +424,7 @@ final class MigrateFromOldCrm extends Command
             DB::table('sent_emails')->insert([
                 'id' => $record->id,
                 'user_id' => $record->user_id,
-                'dealership_id' => $record->dealership_id,
+                'company_id' => $record->dealership_id,
                 'recipient' => $record->recipient,
                 'message_id' => $record->message_id,
                 'subject' => $record->subject,
@@ -626,7 +627,7 @@ final class MigrateFromOldCrm extends Command
         $migrated = 0;
 
         foreach ($records as $record) {
-            $dealershipExists = DB::table('dealerships')->where('id', $record->dealership_id)->exists();
+            $dealershipExists = DB::table('companies')->where('id', $record->dealership_id)->exists();
             $userExists = DB::table('users')->where('id', $record->user_id)->exists();
 
             if (! $dealershipExists || ! $userExists) {
@@ -636,8 +637,8 @@ final class MigrateFromOldCrm extends Command
             }
 
             // Check if this relationship already exists
-            $alreadyExists = DB::table('dealership_user')
-                ->where('dealership_id', $record->dealership_id)
+            $alreadyExists = DB::table('company_user')
+                ->where('company_id', $record->dealership_id)
                 ->where('user_id', $record->user_id)
                 ->exists();
 
@@ -647,8 +648,8 @@ final class MigrateFromOldCrm extends Command
                 continue;
             }
 
-            DB::table('dealership_user')->insert([
-                'dealership_id' => $record->dealership_id,
+            DB::table('company_user')->insert([
+                'company_id' => $record->dealership_id,
                 'user_id' => $record->user_id,
             ]);
             $migrated++;

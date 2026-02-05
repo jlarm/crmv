@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\CompanyContactController;
+use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CompanyStoreController;
 use App\Http\Controllers\CompanyUserController;
-use App\Http\Controllers\DealershipController;
 use App\Http\Controllers\OrganizationController;
 use Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests;
 use Illuminate\Support\Facades\Route;
@@ -19,7 +19,7 @@ Route::get('/', function () {
 })->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/dashboard', [DealershipController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [CompanyController::class, 'index'])->name('dashboard');
 
     Route::post('organization/create', [OrganizationController::class, 'store'])
         ->middleware([HandlePrecognitiveRequests::class])
@@ -46,7 +46,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('companies.users.update');
 });
 
-Route::resource('company', DealershipController::class)
+Route::resource('company', CompanyController::class)
     ->only(['show', 'update'])
     ->middleware(['auth', 'verified']);
 

@@ -14,7 +14,7 @@ use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
-final class DealershipController extends Controller
+final class CompanyController extends Controller
 {
     public function index(DealershipIndexRequest $request): Response
     {
@@ -75,6 +75,6 @@ final class DealershipController extends Controller
 
         return redirect()
             ->route('company.show', $company)
-            ->with('success', 'Dealership updated successfully.');
+            ->with('success', 'Company updated successfully.');
     }
 }

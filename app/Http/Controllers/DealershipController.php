@@ -9,6 +9,7 @@ use App\Http\Requests\DealershipUpdateRequest;
 use App\Http\Resources\DealershipResource;
 use App\Http\Resources\DealershipShowResource;
 use App\Models\Company;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -55,12 +56,22 @@ final class DealershipController extends Controller
 
         return Inertia::render('Company/Show', [
             'company' => DealershipShowResource::make($company)->resolve(),
+            'allUsers' => User::query()->select('id', 'name')->orderBy('name')->get(),
         ]);
     }
 
     public function update(DealershipUpdateRequest $request, Company $company): RedirectResponse
     {
         $company->update($request->validated());
+
+        if ($request->has('user_ids')) {
+            $validated = $request->validate([
+                'user_ids' => ['array'],
+                'user_ids.*' => ['integer', 'exists:users,id'],
+            ]);
+
+            $company->users()->sync($validated['user_ids'] ?? []);
+        }
 
         return redirect()
             ->route('company.show', $company)

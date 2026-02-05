@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\CompanyContactController;
 use App\Http\Controllers\CompanyStoreController;
+use App\Http\Controllers\CompanyUserController;
 use App\Http\Controllers\DealershipController;
 use App\Http\Controllers\OrganizationController;
 use Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests;
@@ -40,6 +41,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('companies.contacts.update');
     Route::delete('companies/{company}/contacts/{contact}', [CompanyContactController::class, 'destroy'])
         ->name('companies.contacts.destroy');
+
+    Route::put('companies/{company}/users', [CompanyUserController::class, 'update'])
+        ->name('companies.users.update');
 });
 
 Route::resource('company', DealershipController::class)

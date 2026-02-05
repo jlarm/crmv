@@ -22,6 +22,8 @@ final class DealershipUpdateRequest extends FormRequest
             'notes' => ['nullable', 'string'],
             'status' => ['required', 'string', 'in:active,inactive'],
             'rating' => ['required', 'string', 'in:hot,warm,cold'],
+            'user_ids' => ['array'],
+            'user_ids.*' => ['integer', 'exists:users,id'],
         ];
     }
 }

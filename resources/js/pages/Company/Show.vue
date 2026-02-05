@@ -21,7 +21,6 @@ import type { BreadcrumbItem } from '@/types';
 import { Separator } from '@/components/ui/separator';
 import InputError from '@/components/InputError.vue';
 import { computed, ref, watch } from 'vue';
-import { toast } from 'vue-sonner';
 import { Badge } from '@/components/ui/badge';
 import {
     Select,
@@ -104,6 +103,7 @@ interface User {
 
 interface Props {
     company: Company;
+    allUsers: User[];
 }
 
 const props = defineProps<Props>();
@@ -115,6 +115,71 @@ const company = computed(() => {
         props.company ??
         ((page.props.value?.company as Company | undefined) ?? null)
     );
+});
+
+const consultantSearch = ref('');
+const filteredConsultants = computed(() => {
+    const search = consultantSearch.value.trim().toLowerCase();
+    const available = props.allUsers.filter(
+        (user) => !selectedConsultantIds.value.includes(user.id),
+    );
+
+    if (!search) {
+        return available;
+    }
+
+    return available.filter((user) =>
+        user.name.toLowerCase().includes(search),
+    );
+});
+
+const selectedConsultantIds = ref<number[]>([]);
+const initialConsultantIds = ref<number[]>([]);
+const lastCompanyId = ref<number | null>(null);
+const selectedConsultants = computed(() => {
+    return props.allUsers.filter((user) =>
+        selectedConsultantIds.value.includes(user.id),
+    );
+});
+
+function syncConsultantsFromCompany(): void {
+    const ids = (company.value?.users?.data ?? []).map((user) => user.id);
+    selectedConsultantIds.value = ids;
+    initialConsultantIds.value = ids;
+}
+
+watch(
+    () => company.value?.id ?? null,
+    (id) => {
+        if (!id) {
+            return;
+        }
+
+        if (lastCompanyId.value !== id) {
+            lastCompanyId.value = id;
+            syncConsultantsFromCompany();
+        }
+    },
+    { immediate: true },
+);
+
+watch(
+    () => (company.value?.users?.data ?? []).map((user) => user.id).join(','),
+    () => {
+        if (!consultantsDirty.value) {
+            syncConsultantsFromCompany();
+        }
+    },
+);
+
+const consultantsDirty = computed(() => {
+    const current = [...selectedConsultantIds.value].sort();
+    const initial = [...initialConsultantIds.value].sort();
+    if (current.length !== initial.length) {
+        return true;
+    }
+
+    return current.some((id, index) => id !== initial[index]);
 });
 
 const breadcrumbItems = computed<BreadcrumbItem[]>(() => {
@@ -137,6 +202,14 @@ const editingStore = ref<Store | null>(null);
 const isContactCreateOpen = ref(false);
 const isContactEditOpen = ref(false);
 const editingContact = ref<Contact | null>(null);
+
+function handleStoreCreateSuccess(): void {
+    isStoreCreateOpen.value = false;
+}
+
+function handleContactCreateSuccess(): void {
+    isContactCreateOpen.value = false;
+}
 
 function openStoreEdit(store: Store): void {
     editingStore.value = store;
@@ -172,14 +245,20 @@ function deleteContact(contact: Contact): void {
     router.delete(`/companies/${company.value.id}/contacts/${contact.id}`);
 }
 
-watch(
-    () => page.props.flash?.success,
-    (message) => {
-        if (message) {
-            toast.success(message);
+function toggleConsultant(userId: number, checked: boolean | 'indeterminate'): void {
+    if (checked === true) {
+        if (!selectedConsultantIds.value.includes(userId)) {
+            selectedConsultantIds.value = [...selectedConsultantIds.value, userId];
         }
-    },
-);
+        return;
+    }
+
+    selectedConsultantIds.value = selectedConsultantIds.value.filter(
+        (id) => id !== userId,
+    );
+}
+
+// Success toasts are handled globally in AppLayout.
 </script>
 
 <template>
@@ -422,38 +501,94 @@ watch(
 
                     <Card>
                         <CardHeader>
-                            <CardTitle>Users</CardTitle>
+                            <CardTitle>Consultants</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <ItemGroup>
-                                <Item
-                                    v-for="user in company.users.data"
-                                    :key="user.id"
-                                >
-                                    <ItemContent>
-                                        <ItemTitle>{{ user.name }}</ItemTitle>
-                                    </ItemContent>
-                                    <ItemActions>
-                                        <Button
-                                            variant="outline"
-                                            size="icon"
-                                            class="shrink-0"
+                            <div class="space-y-4">
+                                <input
+                                    v-for="id in selectedConsultantIds"
+                                    :key="id"
+                                    type="hidden"
+                                    name="user_ids[]"
+                                    :value="id"
+                                />
+                                <div class="space-y-3">
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger as-child>
+                                            <Button
+                                                variant="outline"
+                                                class="w-full justify-between"
+                                            >
+                                                <span>
+                                                    Select consultants
+                                                </span>
+                                                <span class="text-xs text-slate-500">
+                                                    {{ selectedConsultantIds.length }}
+                                                </span>
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent class="w-72">
+                                            <div class="p-2">
+                                                <Input
+                                                    v-model="consultantSearch"
+                                                    placeholder="Search consultants..."
+                                                />
+                                            </div>
+                                            <div class="max-h-60 overflow-auto py-1">
+                                                <DropdownMenuItem
+                                                    v-for="user in filteredConsultants"
+                                                    :key="user.id"
+                                                    @select.prevent="toggleConsultant(user.id, true)"
+                                                    @click="toggleConsultant(user.id, true)"
+                                                >
+                                                    {{ user.name }}
+                                                </DropdownMenuItem>
+                                                <div
+                                                    v-if="filteredConsultants.length === 0"
+                                                    class="px-2 py-2 text-xs text-slate-500"
+                                                >
+                                                    No consultants match that search.
+                                                </div>
+                                            </div>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                    <div class="text-xs text-slate-500">
+                                        Selected consultants
+                                    </div>
+                                    <div class="flex flex-wrap gap-2">
+                                        <span
+                                            v-for="user in selectedConsultants"
+                                            :key="user.id"
+                                            class="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-700"
                                         >
-                                            <Minus class="h-4 w-4" />
-                                        </Button>
-                                    </ItemActions>
-                                    <ItemSeparator />
-                                </Item>
-                            </ItemGroup>
+                                            {{ user.name }}
+                                            <button
+                                                type="button"
+                                                class="text-slate-500 hover:text-slate-700"
+                                                aria-label="Remove consultant"
+                                                @click="toggleConsultant(user.id, false)"
+                                            >
+                                                ×
+                                            </button>
+                                        </span>
+                                        <span
+                                            v-if="selectedConsultants.length === 0"
+                                            class="text-xs text-slate-500"
+                                        >
+                                            None selected.
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
                         </CardContent>
                     </Card>
 
                     <div class="col-span-full flex justify-end gap-3">
-                        <Button variant="destructive" :disabled="processing">
+                        <Button type="button" variant="destructive" :disabled="processing">
                             <Trash2 />
                             Delete
                         </Button>
-                        <Button :disabled="processing || !isDirty">
+                        <Button type="submit" :disabled="processing || (!isDirty && !consultantsDirty)">
                             <Save />
                             Update
                         </Button>
@@ -483,6 +618,8 @@ watch(
                                 :action="`/companies/${company.id}/stores`"
                                 method="post"
                                 class="grid grid-cols-2 gap-4"
+                                reset-on-success
+                                :on-success="handleStoreCreateSuccess"
                                 v-slot="{ errors, processing }"
                             >
                                 <Field class="col-span-2">
@@ -723,6 +860,8 @@ watch(
                                 :action="`/companies/${company.id}/contacts`"
                                 method="post"
                                 class="grid grid-cols-2 gap-4"
+                                reset-on-success
+                                :on-success="handleContactCreateSuccess"
                                 v-slot="{ errors, processing }"
                             >
                                 <Field class="col-span-2">

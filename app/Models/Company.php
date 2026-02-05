@@ -107,6 +107,27 @@ final class Company extends Model
         $query->where('rating', $rating);
     }
 
+    public function scopeWithType(Builder $query, ?string $type): void
+    {
+        if (! $type) {
+            return;
+        }
+
+        $query->where('type', $type);
+    }
+
+    public function scopeForUser(Builder $query, ?User $user): void
+    {
+        if (! $user) {
+            return;
+        }
+
+        $query->where(function (Builder $query) use ($user): void {
+            $query->where('user_id', $user->id)
+                ->orWhereHas('users', fn (Builder $relationQuery) => $relationQuery->where('users.id', $user->id));
+        });
+    }
+
     public function scopeSortBy(Builder $query, ?string $sort, ?string $direction = 'asc'): void
     {
         if (! $sort) {

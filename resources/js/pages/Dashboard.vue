@@ -40,18 +40,22 @@ interface Props {
         search?: string;
         status?: string;
         rating?: string;
+        type?: string;
+        scope?: string;
+        include_imported?: string;
         sort?: string;
         direction?: string;
     };
     filterOptions: {
         statuses: FilterOption[];
         ratings: FilterOption[];
+        types: FilterOption[];
     };
 }
 
 const props = defineProps<Props>();
 
-const { filters, resetFilters, hasActiveFilters } = useTableFilters({
+const { filters, resetFilters } = useTableFilters({
     routeUrl: dashboard().url,
     initialFilters: {
         search:
@@ -65,6 +69,14 @@ const { filters, resetFilters, hasActiveFilters } = useTableFilters({
         rating:
             typeof props.filters.rating === 'string'
                 ? props.filters.rating
+                : '',
+        type:
+            typeof props.filters.type === 'string' ? props.filters.type : '',
+        scope:
+            typeof props.filters.scope === 'string' ? props.filters.scope : '',
+        include_imported:
+            typeof props.filters.include_imported === 'string'
+                ? props.filters.include_imported
                 : '',
         sort: typeof props.filters.sort === 'string' ? props.filters.sort : '',
         direction:
@@ -151,7 +163,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                 v-model="filters"
                 :statuses="filterOptions.statuses"
                 :ratings="filterOptions.ratings"
-                :has-active-filters="hasActiveFilters(['sort', 'direction'])"
+                :types="filterOptions.types"
                 @reset="resetFilters"
             />
 

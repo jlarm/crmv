@@ -62,7 +62,7 @@ final class CompanyController extends Controller
 
     public function update(DealershipUpdateRequest $request, Company $company): RedirectResponse
     {
-        $company->update($request->validated());
+        $company->update($request->safe()->except(['user_ids']));
 
         if ($request->has('user_ids')) {
             $validated = $request->validate([

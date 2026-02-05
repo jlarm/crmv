@@ -460,40 +460,6 @@ function toggleConsultant(userId: number, checked: boolean | 'indeterminate'): v
                                         />
                                     </Field>
 
-                                    <Field class="col-span-3">
-                                        <FieldLabel for="status">Status</FieldLabel>
-                                        <Select name="status">
-                                            <SelectTrigger>
-                                                <SelectValue
-                                                    :placeholder="company.status"
-                                                />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="active"
-                                                    >Active</SelectItem
-                                                >
-                                                <SelectItem value="inactive"
-                                                    >Inactive</SelectItem
-                                                >
-                                            </SelectContent>
-                                        </Select>
-                                    </Field>
-
-                                    <Field class="col-span-3">
-                                        <FieldLabel for="rating">Rating</FieldLabel>
-                                        <Select name="rating">
-                                            <SelectTrigger>
-                                                <SelectValue
-                                                    :placeholder="company.rating"
-                                                />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="hot">Hot</SelectItem>
-                                                <SelectItem value="warm">Warm</SelectItem>
-                                                <SelectItem value="cold">Cold</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </Field>
                                 </div>
                             </FieldGroup>
                         </div>
@@ -578,6 +544,43 @@ function toggleConsultant(userId: number, checked: boolean | 'indeterminate'): v
                                             None selected.
                                         </span>
                                     </div>
+                                </div>
+                                <Separator class="my-4" />
+                                <div class="grid grid-cols-2 gap-4">
+                                    <Field class="col-span-2">
+                                        <FieldLabel for="status">Status</FieldLabel>
+                                        <Select name="status" :default-value="company.status">
+                                            <SelectTrigger>
+                                                <SelectValue
+                                                    :placeholder="company.status"
+                                                />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="active"
+                                                    >Active</SelectItem
+                                                >
+                                                <SelectItem value="inactive"
+                                                    >Inactive</SelectItem
+                                                >
+                                            </SelectContent>
+                                        </Select>
+                                    </Field>
+
+                                    <Field class="col-span-2">
+                                        <FieldLabel for="rating">Rating</FieldLabel>
+                                        <Select name="rating" :default-value="company.rating">
+                                            <SelectTrigger>
+                                                <SelectValue
+                                                    :placeholder="company.rating"
+                                                />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="hot">Hot</SelectItem>
+                                                <SelectItem value="warm">Warm</SelectItem>
+                                                <SelectItem value="cold">Cold</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </Field>
                                 </div>
                             </div>
                         </CardContent>

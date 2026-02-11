@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, usePage } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { computed, nextTick, ref } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem } from '@/types';
 import { show } from '@/routes/company';
@@ -43,6 +43,24 @@ const breadcrumbItems = computed<BreadcrumbItem[]>(() => {
 
 const activeTab = ref<CompanyShowTab>('details');
 const currentCompany = computed(() => company.value as Company);
+const tabScrollPositions = ref<Record<CompanyShowTab, number>>({
+    details: 0,
+    progress: 0,
+    stores: 0,
+    contacts: 0,
+});
+
+function setActiveTab(tab: CompanyShowTab): void {
+    tabScrollPositions.value[activeTab.value] = window.scrollY;
+    const targetScrollTop = tabScrollPositions.value[tab] ?? window.scrollY;
+    activeTab.value = tab;
+
+    nextTick(() => {
+        requestAnimationFrame(() => {
+            window.scrollTo({ top: targetScrollTop, behavior: 'auto' });
+        });
+    });
+}
 </script>
 
 <template>
@@ -69,7 +87,10 @@ const currentCompany = computed(() => company.value as Company);
                 </div>
             </div>
 
-            <CompanyShowTabs v-model:active-tab="activeTab" />
+            <CompanyShowTabs
+                :active-tab="activeTab"
+                @update:active-tab="setActiveTab"
+            />
 
             <CompanyDetailsTab
                 v-if="activeTab === 'details'"

@@ -55,7 +55,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 Route::resource('company', CompanyController::class)
-    ->only(['show', 'update'])
+    ->only(['show', 'store', 'update'])
     ->middleware(['auth', 'verified']);
 
 require __DIR__.'/settings.php';

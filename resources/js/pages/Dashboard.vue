@@ -1,24 +1,37 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/vue3';
+import { Form, Head, router } from '@inertiajs/vue3';
 import { useTableFilters } from '@/composables/useTableFilters';
 import LoadingOverlay from '@/components/LoadingOverlay.vue';
 import CompanyFilters from '@/components/CompanyFilters.vue';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Field, FieldLabel } from '@/components/ui/field';
+import InputError from '@/components/InputError.vue';
 import {
     ChevronLeft,
     ChevronRight,
     ChevronsLeft,
     ChevronsRight,
+    Plus,
 } from 'lucide-vue-next';
 import {
     type Company,
     createColumns,
 } from '@/components/companies/columns';
 import DataTable from '@/components/companies/DataTable.vue';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
 
 interface FilterOption {
     value: string;
@@ -150,6 +163,8 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: dashboard().url,
     },
 ];
+
+const isCreateCompanyOpen = ref(false);
 </script>
 
 <template>
@@ -159,13 +174,52 @@ const breadcrumbs: BreadcrumbItem[] = [
         <div class="space-y-6 p-6">
             <LoadingOverlay />
 
-            <CompanyFilters
-                v-model="filters"
-                :statuses="filterOptions.statuses"
-                :ratings="filterOptions.ratings"
-                :types="filterOptions.types"
-                @reset="resetFilters"
-            />
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <CompanyFilters
+                    v-model="filters"
+                    :statuses="filterOptions.statuses"
+                    :ratings="filterOptions.ratings"
+                    :types="filterOptions.types"
+                    @reset="resetFilters"
+                />
+                <Dialog v-model:open="isCreateCompanyOpen">
+                    <DialogTrigger as-child>
+                        <Button>
+                            <Plus class="h-4 w-4" />
+                            New Company
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent class="sm:max-w-md">
+                        <DialogHeader>
+                            <DialogTitle>Create Company</DialogTitle>
+                            <DialogDescription>
+                                Enter the required info to create a company.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <Form
+                            action="/company"
+                            method="post"
+                            class="grid gap-4"
+                            :on-success="() => (isCreateCompanyOpen = false)"
+                            v-slot="{ errors, processing }"
+                        >
+                            <Field>
+                                <FieldLabel for="create_company_name">Company Name</FieldLabel>
+                                <Input
+                                    id="create_company_name"
+                                    name="name"
+                                    required
+                                    placeholder="Acme Motors"
+                                />
+                                <InputError :message="errors.name" />
+                            </Field>
+                            <DialogFooter>
+                                <Button :disabled="processing">Create</Button>
+                            </DialogFooter>
+                        </Form>
+                    </DialogContent>
+                </Dialog>
+            </div>
 
             <DataTable
                 :columns="columns"

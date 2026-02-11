@@ -10,6 +10,7 @@ use App\Http\Resources\DealershipResource;
 use App\Http\Resources\DealershipShowResource;
 use App\Models\Company;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -120,6 +121,34 @@ final class CompanyController extends Controller
             'company' => DealershipShowResource::make($company)->resolve(),
             'allUsers' => User::query()->select('id', 'name')->orderBy('name')->get(),
         ]);
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+        ]);
+
+        $user = $request->user();
+
+        if (! $user?->current_organization_id) {
+            return back()->withErrors([
+                'name' => 'Please select an organization before creating a company.',
+            ]);
+        }
+
+        $company = Company::query()->create([
+            'organization_id' => $user->current_organization_id,
+            'user_id' => $user->id,
+            'name' => $validated['name'],
+            'status' => 'active',
+            'rating' => 'warm',
+            'type' => 'general',
+        ]);
+
+        return redirect()
+            ->route('company.show', $company)
+            ->with('success', 'Company created successfully.');
     }
 
     public function update(DealershipUpdateRequest $request, Company $company): RedirectResponse

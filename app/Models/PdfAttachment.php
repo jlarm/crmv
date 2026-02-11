@@ -7,7 +7,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\MorphedByMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
 final class PdfAttachment extends Model
 {
@@ -23,7 +23,7 @@ final class PdfAttachment extends Model
         return $this->hasMany(Attachable::class);
     }
 
-    public function dealerEmails(): MorphedByMany
+    public function dealerEmails(): MorphToMany
     {
         return $this->morphedByMany(DealerEmail::class, 'attachable', 'attachables');
     }

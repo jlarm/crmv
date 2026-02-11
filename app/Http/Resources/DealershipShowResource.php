@@ -49,6 +49,21 @@ final class DealershipShowResource extends JsonResource
                     'primaryContact' => (bool) $contact->primary_contact,
                 ]);
             }),
+            'progresses' => $this->whenLoaded('progresses', function () {
+                return $this->progresses->map(fn ($progress) => [
+                    'id' => $progress->id,
+                    'details' => $progress->details,
+                    'date' => optional($progress->date)->toDateString(),
+                    'completedAt' => $progress->completed_at?->toDateTimeString(),
+                    'createdAt' => $progress->created_at?->toDateTimeString(),
+                    'contact' => $progress->contact
+                        ? [
+                            'id' => $progress->contact->id,
+                            'name' => $progress->contact->name,
+                        ]
+                        : null,
+                ]);
+            }),
             'users' => UserResource::collection($this->whenLoaded('users')),
         ];
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\CompanyContactController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\CompanyProgressController;
 use App\Http\Controllers\CompanyStoreController;
 use App\Http\Controllers\CompanyUserController;
 use App\Http\Controllers\OrganizationController;
@@ -34,6 +35,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('companies.stores.update');
     Route::delete('companies/{company}/stores/{store}', [CompanyStoreController::class, 'destroy'])
         ->name('companies.stores.destroy');
+
+    Route::post('companies/{company}/progresses', [CompanyProgressController::class, 'store'])
+        ->name('companies.progresses.store');
+    Route::put('companies/{company}/progresses/{progress}', [CompanyProgressController::class, 'update'])
+        ->name('companies.progresses.update');
+    Route::delete('companies/{company}/progresses/{progress}', [CompanyProgressController::class, 'destroy'])
+        ->name('companies.progresses.destroy');
 
     Route::post('companies/{company}/contacts', [CompanyContactController::class, 'store'])
         ->name('companies.contacts.store');

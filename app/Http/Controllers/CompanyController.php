@@ -109,6 +109,11 @@ final class CompanyController extends Controller
             'users' => fn ($query) => $query->select('id', 'name'),
             'stores',
             'contacts',
+            'progresses' => fn ($query) => $query
+                ->with(['contact:id,name'])
+                ->orderByRaw('completed_at is not null')
+                ->orderByDesc('date')
+                ->orderByDesc('created_at'),
         ]);
 
         return Inertia::render('Company/Show', [

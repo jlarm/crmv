@@ -22,6 +22,7 @@ final class Progress extends Model
         'progress_category_id',
         'details',
         'date',
+        'completed_at',
     ];
 
     public function user(): BelongsTo
@@ -48,6 +49,7 @@ final class Progress extends Model
     {
         return [
             'date' => 'date',
+            'completed_at' => 'datetime',
         ];
     }
 }

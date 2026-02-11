@@ -83,8 +83,11 @@ return new class extends Migration
         ]);
 
         Schema::table('contacts', function (Blueprint $table) {
+            $table->dropIndex('contacts_dealership_id_primary_contact_index');
+        });
+
+        Schema::table('contacts', function (Blueprint $table) {
             $table->dropConstrainedForeignId('dealership_id');
-            $table->dropIndex(['dealership_id', 'primary_contact']);
         });
 
         Schema::table('contacts', function (Blueprint $table) {
@@ -137,8 +140,11 @@ return new class extends Migration
         ]);
 
         Schema::table('progresses', function (Blueprint $table) {
+            $table->dropIndex('progresses_dealership_id_date_index');
+        });
+
+        Schema::table('progresses', function (Blueprint $table) {
             $table->dropConstrainedForeignId('dealership_id');
-            $table->dropIndex(['dealership_id', 'date']);
         });
 
         Schema::table('progresses', function (Blueprint $table) {
@@ -217,8 +223,11 @@ return new class extends Migration
         ]);
 
         Schema::table('contacts', function (Blueprint $table) {
+            $table->dropIndex('contacts_company_id_primary_contact_index');
+        });
+
+        Schema::table('contacts', function (Blueprint $table) {
             $table->dropConstrainedForeignId('company_id');
-            $table->dropIndex(['company_id', 'primary_contact']);
         });
 
         Schema::table('contacts', function (Blueprint $table) {
@@ -271,8 +280,11 @@ return new class extends Migration
         ]);
 
         Schema::table('progresses', function (Blueprint $table) {
+            $table->dropIndex('progresses_company_id_date_index');
+        });
+
+        Schema::table('progresses', function (Blueprint $table) {
             $table->dropConstrainedForeignId('company_id');
-            $table->dropIndex(['company_id', 'date']);
         });
 
         Schema::table('progresses', function (Blueprint $table) {

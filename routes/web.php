@@ -8,6 +8,7 @@ use App\Http\Controllers\CompanyProgressController;
 use App\Http\Controllers\CompanyStoreController;
 use App\Http\Controllers\CompanyUserController;
 use App\Http\Controllers\OrganizationController;
+use App\Http\Controllers\UserManagementController;
 use Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -52,6 +53,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::put('companies/{company}/users', [CompanyUserController::class, 'update'])
         ->name('companies.users.update');
+
+    Route::get('/users', [UserManagementController::class, 'index'])
+        ->name('users.index');
+    Route::post('/users', [UserManagementController::class, 'store'])
+        ->name('users.store');
+    Route::put('/users/{user}/organizations', [UserManagementController::class, 'updateOrganizations'])
+        ->name('users.organizations.update');
+    Route::delete('/users/{user}', [UserManagementController::class, 'destroy'])
+        ->name('users.destroy');
 });
 
 Route::resource('company', CompanyController::class)

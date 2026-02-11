@@ -11,8 +11,11 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
-import { LayoutGrid } from 'lucide-vue-next';
+import { LayoutGrid, Users } from 'lucide-vue-next';
 import OrganizationSwitcher from '@/components/OrganizationSwitcher.vue';
+import { usePage } from '@inertiajs/vue3';
+
+const page = usePage();
 
 const mainNavItems: NavItem[] = [
     {
@@ -21,6 +24,14 @@ const mainNavItems: NavItem[] = [
         icon: LayoutGrid,
     },
 ];
+
+if (page.props.auth?.user?.is_admin) {
+    mainNavItems.push({
+        title: 'Users',
+        href: '/users',
+        icon: Users,
+    });
+}
 </script>
 
 <template>

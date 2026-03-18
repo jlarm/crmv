@@ -5,6 +5,7 @@ import CompanyFilters from '@/components/CompanyFilters.vue';
 import InputError from '@/components/InputError.vue';
 import LoadingOverlay from '@/components/LoadingOverlay.vue';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -21,7 +22,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { dashboard } from '@/routes';
 import { show as showCompany } from '@/routes/company';
 import { type BreadcrumbItem } from '@/types';
-import { Form, Head, router } from '@inertiajs/vue3';
+import { Form, Head, Link, router } from '@inertiajs/vue3';
 import {
     ChevronLeft,
     ChevronRight,
@@ -37,6 +38,8 @@ interface FilterOption {
 }
 
 interface Props {
+    upcomingProgresses: DashboardProgress[];
+    pastDueProgresses: DashboardProgress[];
     companies: {
         data: Company[];
         links: Array<{ url: string | null; label: string; active: boolean }>;
@@ -62,6 +65,20 @@ interface Props {
         ratings: FilterOption[];
         types: FilterOption[];
     };
+}
+
+interface DashboardProgress {
+    id: number;
+    details: string;
+    date: string | null;
+    company: {
+        id: number;
+        name: string;
+    };
+    contact: {
+        id: number;
+        name: string;
+    } | null;
 }
 
 const props = defineProps<Props>();
@@ -122,6 +139,24 @@ const currentSorting = computed(() => ({
 
 const columns = createColumns(handleSort);
 
+function formatProgressDate(value: string | null): string {
+    if (!value) {
+        return 'No due date';
+    }
+
+    const date = new Date(`${value}T00:00:00`);
+
+    if (Number.isNaN(date.getTime())) {
+        return value;
+    }
+
+    return new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+    }).format(date);
+}
+
 function goToPage(url: string | null): void {
     if (!url) return;
     router.visit(url, {
@@ -176,6 +211,104 @@ const isCreateCompanyOpen = ref(false);
         <div class="space-y-6 p-6">
             <LoadingOverlay />
 
+            <div class="grid gap-4 xl:grid-cols-2">
+                <Card>
+                    <CardHeader class="space-y-1">
+                        <CardTitle>Upcoming Progress</CardTitle>
+                        <p class="text-sm text-muted-foreground">
+                            Open progress due within the next 7 days.
+                        </p>
+                    </CardHeader>
+                    <CardContent class="max-h-[16rem] overflow-y-auto pr-2">
+                        <div
+                            v-if="upcomingProgresses.length > 0"
+                            class="space-y-3"
+                        >
+                            <Link
+                                v-for="progress in upcomingProgresses"
+                                :key="progress.id"
+                                :href="showCompany.url(progress.company.id)"
+                                class="block rounded-lg border border-border p-4 transition hover:bg-muted/40"
+                            >
+                                <div
+                                    class="flex items-start justify-between gap-3"
+                                >
+                                    <div class="space-y-1">
+                                        <p class="text-sm font-medium">
+                                            {{ progress.details }}
+                                        </p>
+                                        <p
+                                            class="text-sm text-muted-foreground"
+                                        >
+                                            {{ progress.company.name }}
+                                            <span v-if="progress.contact">
+                                                · {{ progress.contact.name }}
+                                            </span>
+                                        </p>
+                                    </div>
+                                    <div
+                                        class="shrink-0 text-xs font-medium tracking-wide text-muted-foreground uppercase"
+                                    >
+                                        {{ formatProgressDate(progress.date) }}
+                                    </div>
+                                </div>
+                            </Link>
+                        </div>
+                        <p v-else class="text-sm text-muted-foreground">
+                            No upcoming progress due in the next 7 days.
+                        </p>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader class="space-y-1">
+                        <CardTitle>Past Due Progress</CardTitle>
+                        <p class="text-sm text-muted-foreground">
+                            Open progress items with due dates before today.
+                        </p>
+                    </CardHeader>
+                    <CardContent class="max-h-[16rem] overflow-y-auto pr-2">
+                        <div
+                            v-if="pastDueProgresses.length > 0"
+                            class="space-y-3"
+                        >
+                            <Link
+                                v-for="progress in pastDueProgresses"
+                                :key="progress.id"
+                                :href="showCompany.url(progress.company.id)"
+                                class="block rounded-lg border border-destructive/20 bg-destructive/5 p-4 transition hover:bg-destructive/10"
+                            >
+                                <div
+                                    class="flex items-start justify-between gap-3"
+                                >
+                                    <div class="space-y-1">
+                                        <p class="text-sm font-medium">
+                                            {{ progress.details }}
+                                        </p>
+                                        <p
+                                            class="text-sm text-muted-foreground"
+                                        >
+                                            {{ progress.company.name }}
+                                            <span v-if="progress.contact">
+                                                · {{ progress.contact.name }}
+                                            </span>
+                                        </p>
+                                    </div>
+                                    <div
+                                        class="shrink-0 text-xs font-medium tracking-wide text-destructive uppercase"
+                                    >
+                                        {{ formatProgressDate(progress.date) }}
+                                    </div>
+                                </div>
+                            </Link>
+                        </div>
+                        <p v-else class="text-sm text-muted-foreground">
+                            No past due progress items.
+                        </p>
+                    </CardContent>
+                </Card>
+            </div>
+
             <div class="flex flex-wrap items-center justify-between gap-3">
                 <div class="flex flex-wrap items-center gap-3">
                     <div
@@ -211,6 +344,7 @@ const isCreateCompanyOpen = ref(false);
                         @reset="resetFilters"
                     />
                 </div>
+
                 <Dialog v-model:open="isCreateCompanyOpen">
                     <DialogTrigger as-child>
                         <Button>

@@ -9,7 +9,10 @@ use App\Http\Requests\DealershipUpdateRequest;
 use App\Http\Resources\DealershipResource;
 use App\Http\Resources\DealershipShowResource;
 use App\Models\Company;
+use App\Models\Progress;
 use App\Models\User;
+use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -28,7 +31,7 @@ final class CompanyController extends Controller
         $includeImported = $request->boolean('include_imported');
         $status = $request->input('status');
 
-        $applyVisibilityFilters = function ($query) use ($request, $scope, $includeImported): void {
+        $applyVisibilityFilters = function (Builder $query) use ($request, $scope, $includeImported): void {
             if ($scope === 'mine') {
                 $query->forUser($request->user());
             }
@@ -38,23 +41,28 @@ final class CompanyController extends Controller
             }
         };
 
-        $dealershipQuery = Company::query();
-        $applyVisibilityFilters($dealershipQuery);
+        $applyCompanyFilters = function (Builder $query) use ($applyVisibilityFilters, $request, $status, $includeImported): void {
+            $applyVisibilityFilters($query);
 
-        $dealershipQuery
-            ->search($request->input('search'));
+            $query->search($request->input('search'))
+                ->withRating($request->input('rating'))
+                ->withType($request->input('type'));
 
-        if ($status) {
-            if ($includeImported) {
-                $dealershipQuery->whereIn('status', [$status, 'imported']);
-            } else {
-                $dealershipQuery->where('status', $status);
+            if (! $status) {
+                return;
             }
-        }
+
+            if ($includeImported) {
+                $query->whereIn('status', [$status, 'imported']);
+            } else {
+                $query->where('status', $status);
+            }
+        };
+
+        $dealershipQuery = Company::query();
+        $applyCompanyFilters($dealershipQuery);
 
         $dealerships = $dealershipQuery
-            ->withRating($request->input('rating'))
-            ->withType($request->input('type'))
             ->sortBy($request->input('sort'), $request->input('direction'))
             ->select('id', 'name', 'city', 'state', 'status', 'rating')
             ->paginate(15)
@@ -77,8 +85,56 @@ final class CompanyController extends Controller
             ])
             ->all();
 
+        $today = CarbonImmutable::today();
+        $nextWeek = $today->addDays(7);
+
+        $buildProgressQuery = function () use ($applyCompanyFilters): Builder {
+            return Progress::query()
+                ->with(['company:id,name', 'contact:id,name'])
+                ->whereNull('completed_at')
+                ->whereNotNull('date')
+                ->whereHas('company', function (Builder $query) use ($applyCompanyFilters): void {
+                    $applyCompanyFilters($query);
+                });
+        };
+
+        $mapDashboardProgress = static fn (Progress $progress): array => [
+            'id' => $progress->id,
+            'details' => $progress->details,
+            'date' => $progress->date?->toDateString(),
+            'company' => [
+                'id' => $progress->company->id,
+                'name' => $progress->company->name,
+            ],
+            'contact' => $progress->contact
+                ? [
+                    'id' => $progress->contact->id,
+                    'name' => $progress->contact->name,
+                ]
+                : null,
+        ];
+
+        $upcomingProgresses = $buildProgressQuery()
+            ->whereDate('date', '>=', $today)
+            ->whereDate('date', '<=', $nextWeek)
+            ->orderBy('date')
+            ->orderBy('id')
+            ->get()
+            ->map($mapDashboardProgress)
+            ->all();
+
+        $pastDueProgresses = $buildProgressQuery()
+            ->whereDate('date', '<', $today)
+            ->orderBy('date')
+            ->orderBy('id')
+            ->get()
+            ->map($mapDashboardProgress)
+            ->all();
+
         return Inertia::render('Dashboard', [
             'companies' => $dealerships,
+            'upcomingProgresses' => $upcomingProgresses,
+            'pastDueProgresses' => $pastDueProgresses,
             'filters' => [
                 'search' => $request->input('search', ''),
                 'status' => $request->input('status', ''),

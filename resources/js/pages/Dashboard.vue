@@ -83,7 +83,10 @@ const { filters, resetFilters } = useTableFilters({
                 : '',
         type: typeof props.filters.type === 'string' ? props.filters.type : '',
         scope:
-            typeof props.filters.scope === 'string' ? props.filters.scope : '',
+            typeof props.filters.scope === 'string' &&
+            ['mine', 'all'].includes(props.filters.scope)
+                ? props.filters.scope
+                : 'mine',
         include_imported:
             typeof props.filters.include_imported === 'string'
                 ? props.filters.include_imported
@@ -172,13 +175,40 @@ const isCreateCompanyOpen = ref(false);
             <LoadingOverlay />
 
             <div class="flex flex-wrap items-center justify-between gap-3">
-                <CompanyFilters
-                    v-model="filters"
-                    :statuses="filterOptions.statuses"
-                    :ratings="filterOptions.ratings"
-                    :types="filterOptions.types"
-                    @reset="resetFilters"
-                />
+                <div class="flex flex-wrap items-center gap-3">
+                    <div
+                        class="inline-flex rounded-md border border-border bg-background p-1"
+                    >
+                        <Button
+                            type="button"
+                            size="sm"
+                            :variant="
+                                filters.scope === 'all' ? 'ghost' : 'secondary'
+                            "
+                            @click="filters.scope = 'mine'"
+                        >
+                            My companies
+                        </Button>
+                        <Button
+                            type="button"
+                            size="sm"
+                            :variant="
+                                filters.scope === 'all' ? 'secondary' : 'ghost'
+                            "
+                            @click="filters.scope = 'all'"
+                        >
+                            All companies
+                        </Button>
+                    </div>
+
+                    <CompanyFilters
+                        v-model="filters"
+                        :statuses="filterOptions.statuses"
+                        :ratings="filterOptions.ratings"
+                        :types="filterOptions.types"
+                        @reset="resetFilters"
+                    />
+                </div>
                 <Dialog v-model:open="isCreateCompanyOpen">
                     <DialogTrigger as-child>
                         <Button>

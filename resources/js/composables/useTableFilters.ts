@@ -1,11 +1,11 @@
-import { ref, watch } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { router } from '@inertiajs/vue3';
+import { ref, watch } from 'vue';
 
 interface UseTableFiltersOptions {
-    routeUrl: string
-    initialFilters?: Record<string, any>
-    debounceMs?: number
-    onlyProps?: string[]
+    routeUrl: string;
+    initialFilters?: Record<string, any>;
+    debounceMs?: number;
+    onlyProps?: string[];
 }
 
 export function useTableFilters(options: UseTableFiltersOptions) {
@@ -14,47 +14,48 @@ export function useTableFilters(options: UseTableFiltersOptions) {
         initialFilters = {},
         debounceMs = 300,
         onlyProps = [],
-    } = options
+    } = options;
 
-    const filters = ref({ ...initialFilters })
-    let debounceTimeout: number | null = null
+    const defaultFilters = { ...initialFilters };
+    const filters = ref({ ...defaultFilters });
+    let debounceTimeout: number | null = null;
 
     watch(
         filters,
         () => {
             if (debounceTimeout) {
-                clearTimeout(debounceTimeout)
+                clearTimeout(debounceTimeout);
             }
 
             debounceTimeout = setTimeout(() => {
-                applyFilters()
-            }, debounceMs)
+                applyFilters();
+            }, debounceMs);
         },
-        { deep: true }
-    )
+        { deep: true },
+    );
 
     function applyFilters(): void {
         const params = Object.fromEntries(
-            Object.entries(filters.value).filter(([_, value]) => value !== '' && value !== null)
-        )
+            Object.entries(filters.value).filter(
+                ([, value]) => value !== '' && value !== null,
+            ),
+        );
 
         router.get(routeUrl, params, {
             preserveState: true,
             preserveScroll: true,
             only: onlyProps.length > 0 ? onlyProps : undefined,
-        })
+        });
     }
 
     function resetFilters(): void {
-        Object.keys(filters.value).forEach(key => {
-            filters.value[key] = ''
-        })
+        filters.value = { ...defaultFilters };
     }
 
     function hasActiveFilters(excludeKeys: string[] = []): boolean {
         return Object.entries(filters.value)
             .filter(([key]) => !excludeKeys.includes(key))
-            .some(([_, value]) => value !== '' && value !== null)
+            .some(([, value]) => value !== '' && value !== null);
     }
 
     return {
@@ -62,5 +63,5 @@ export function useTableFilters(options: UseTableFiltersOptions) {
         applyFilters,
         resetFilters,
         hasActiveFilters,
-    }
+    };
 }

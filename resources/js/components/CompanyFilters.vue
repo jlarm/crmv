@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
-import { Filter, Search, X } from 'lucide-vue-next';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import { Filter, Search, X } from 'lucide-vue-next';
+import { computed, ref, watch } from 'vue';
 
 interface FilterOption {
     value: string;
@@ -112,7 +112,7 @@ function clearFilters(): void {
         status: '',
         rating: '',
         type: '',
-        scope: '',
+        scope: 'mine',
         include_imported: '',
     };
     emit('reset');
@@ -136,10 +136,7 @@ function clearChip(key: keyof Props['modelValue']): void {
                     Filter
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent
-                align="start"
-                class="w-[760px] p-0 shadow-xl"
-            >
+            <DropdownMenuContent align="start" class="w-[760px] p-0 shadow-xl">
                 <div class="grid grid-cols-[220px_1fr]">
                     <div class="border-r border-border p-4">
                         <div class="relative">
@@ -158,7 +155,11 @@ function clearChip(key: keyof Props['modelValue']): void {
                             <button
                                 type="button"
                                 class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition"
-                                :class="activeSection === 'status' ? 'bg-muted font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'"
+                                :class="
+                                    activeSection === 'status'
+                                        ? 'bg-muted font-medium'
+                                        : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+                                "
                                 @click="activeSection = 'status'"
                             >
                                 Status
@@ -166,7 +167,11 @@ function clearChip(key: keyof Props['modelValue']): void {
                             <button
                                 type="button"
                                 class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition"
-                                :class="activeSection === 'rating' ? 'bg-muted font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'"
+                                :class="
+                                    activeSection === 'rating'
+                                        ? 'bg-muted font-medium'
+                                        : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+                                "
                                 @click="activeSection = 'rating'"
                             >
                                 Rating
@@ -174,7 +179,11 @@ function clearChip(key: keyof Props['modelValue']): void {
                             <button
                                 type="button"
                                 class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition"
-                                :class="activeSection === 'type' ? 'bg-muted font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'"
+                                :class="
+                                    activeSection === 'type'
+                                        ? 'bg-muted font-medium'
+                                        : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+                                "
                                 @click="activeSection = 'type'"
                             >
                                 Type
@@ -182,7 +191,11 @@ function clearChip(key: keyof Props['modelValue']): void {
                             <button
                                 type="button"
                                 class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition"
-                                :class="activeSection === 'scope' ? 'bg-muted font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'"
+                                :class="
+                                    activeSection === 'scope'
+                                        ? 'bg-muted font-medium'
+                                        : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+                                "
                                 @click="activeSection = 'scope'"
                             >
                                 Scope
@@ -190,7 +203,11 @@ function clearChip(key: keyof Props['modelValue']): void {
                             <button
                                 type="button"
                                 class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition"
-                                :class="activeSection === 'imported' ? 'bg-muted font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'"
+                                :class="
+                                    activeSection === 'imported'
+                                        ? 'bg-muted font-medium'
+                                        : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+                                "
                                 @click="activeSection = 'imported'"
                             >
                                 Imported
@@ -199,13 +216,18 @@ function clearChip(key: keyof Props['modelValue']): void {
                     </div>
 
                     <div class="p-4">
-                        <div v-if="activeSection === 'status'" class="space-y-3">
+                        <div
+                            v-if="activeSection === 'status'"
+                            class="space-y-3"
+                        >
                             <button
                                 type="button"
                                 class="flex w-full items-center gap-3 rounded-lg border border-border px-3 py-2 text-left"
                                 @click="updateDraft('status', '')"
                             >
-                                <Checkbox :model-value="draftFilters.status === ''" />
+                                <Checkbox
+                                    :model-value="draftFilters.status === ''"
+                                />
                                 <span class="text-sm">All statuses</span>
                             </button>
                             <div class="grid grid-cols-2 gap-3">
@@ -217,20 +239,29 @@ function clearChip(key: keyof Props['modelValue']): void {
                                     @click="updateDraft('status', status.value)"
                                 >
                                     <Checkbox
-                                        :model-value="draftFilters.status === status.value"
+                                        :model-value="
+                                            draftFilters.status === status.value
+                                        "
                                     />
-                                    <span class="text-sm">{{ status.label }}</span>
+                                    <span class="text-sm">{{
+                                        status.label
+                                    }}</span>
                                 </button>
                             </div>
                         </div>
 
-                        <div v-else-if="activeSection === 'rating'" class="space-y-3">
+                        <div
+                            v-else-if="activeSection === 'rating'"
+                            class="space-y-3"
+                        >
                             <button
                                 type="button"
                                 class="flex w-full items-center gap-3 rounded-lg border border-border px-3 py-2 text-left"
                                 @click="updateDraft('rating', '')"
                             >
-                                <Checkbox :model-value="draftFilters.rating === ''" />
+                                <Checkbox
+                                    :model-value="draftFilters.rating === ''"
+                                />
                                 <span class="text-sm">All ratings</span>
                             </button>
                             <div class="grid grid-cols-2 gap-3">
@@ -242,20 +273,29 @@ function clearChip(key: keyof Props['modelValue']): void {
                                     @click="updateDraft('rating', rating.value)"
                                 >
                                     <Checkbox
-                                        :model-value="draftFilters.rating === rating.value"
+                                        :model-value="
+                                            draftFilters.rating === rating.value
+                                        "
                                     />
-                                    <span class="text-sm">{{ rating.label }}</span>
+                                    <span class="text-sm">{{
+                                        rating.label
+                                    }}</span>
                                 </button>
                             </div>
                         </div>
 
-                        <div v-else-if="activeSection === 'type'" class="space-y-3">
+                        <div
+                            v-else-if="activeSection === 'type'"
+                            class="space-y-3"
+                        >
                             <button
                                 type="button"
                                 class="flex w-full items-center gap-3 rounded-lg border border-border px-3 py-2 text-left"
                                 @click="updateDraft('type', '')"
                             >
-                                <Checkbox :model-value="draftFilters.type === ''" />
+                                <Checkbox
+                                    :model-value="draftFilters.type === ''"
+                                />
                                 <span class="text-sm">All types</span>
                             </button>
                             <div class="grid grid-cols-2 gap-3">
@@ -267,20 +307,29 @@ function clearChip(key: keyof Props['modelValue']): void {
                                     @click="updateDraft('type', type.value)"
                                 >
                                     <Checkbox
-                                        :model-value="draftFilters.type === type.value"
+                                        :model-value="
+                                            draftFilters.type === type.value
+                                        "
                                     />
-                                    <span class="text-sm">{{ type.label }}</span>
+                                    <span class="text-sm">{{
+                                        type.label
+                                    }}</span>
                                 </button>
                             </div>
                         </div>
 
-                        <div v-else-if="activeSection === 'scope'" class="space-y-3">
+                        <div
+                            v-else-if="activeSection === 'scope'"
+                            class="space-y-3"
+                        >
                             <button
                                 type="button"
                                 class="flex w-full items-center gap-3 rounded-lg border border-border px-3 py-2 text-left"
-                                @click="updateDraft('scope', '')"
+                                @click="updateDraft('scope', 'mine')"
                             >
-                                <Checkbox :model-value="draftFilters.scope === ''" />
+                                <Checkbox
+                                    :model-value="draftFilters.scope === 'mine'"
+                                />
                                 <span class="text-sm">My companies</span>
                             </button>
                             <button
@@ -299,10 +348,19 @@ function clearChip(key: keyof Props['modelValue']): void {
                             <button
                                 type="button"
                                 class="flex w-full items-center gap-3 rounded-lg border border-border px-3 py-2 text-left"
-                                @click="updateDraft('include_imported', draftFilters.include_imported === '1' ? '' : '1')"
+                                @click="
+                                    updateDraft(
+                                        'include_imported',
+                                        draftFilters.include_imported === '1'
+                                            ? ''
+                                            : '1',
+                                    )
+                                "
                             >
                                 <Checkbox
-                                    :model-value="draftFilters.include_imported === '1'"
+                                    :model-value="
+                                        draftFilters.include_imported === '1'
+                                    "
                                 />
                                 <span class="text-sm">Show imported</span>
                             </button>
@@ -318,7 +376,9 @@ function clearChip(key: keyof Props['modelValue']): void {
                             >
                                 Clear
                             </button>
-                            <Button type="button" @click="applyFilters">Apply</Button>
+                            <Button type="button" @click="applyFilters"
+                                >Apply</Button
+                            >
                         </div>
                     </div>
                 </div>

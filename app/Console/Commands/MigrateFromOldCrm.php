@@ -7,6 +7,7 @@ namespace App\Console\Commands;
 use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 final class MigrateFromOldCrm extends Command
 {
@@ -68,21 +69,44 @@ final class MigrateFromOldCrm extends Command
 
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
 
-        $tables = [
-            'company_user', 'dealership_user', 'contact_tag', 'attachables',
-            'email_tracking_events', 'sent_emails', 'dealer_emails',
-            'dealer_email_templates', 'progresses', 'stores',
-            'contacts', 'companies', 'dealerships', 'progress_categories',
-            'reminders', 'tags', 'pdf_attachments', 'users',
-        ];
-
-        foreach ($tables as $table) {
+        foreach ($this->tablesToTruncate() as $table) {
             DB::table($table)->truncate();
         }
 
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
         $this->info('Tables truncated.');
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function tablesToTruncate(): array
+    {
+        $tables = [
+            'company_user',
+            'contact_tag',
+            'attachables',
+            'email_tracking_events',
+            'sent_emails',
+            'dealer_emails',
+            'dealer_email_templates',
+            'progresses',
+            'stores',
+            'contacts',
+            'companies',
+            'dealerships',
+            'progress_categories',
+            'reminders',
+            'tags',
+            'pdf_attachments',
+            'users',
+        ];
+
+        return array_values(array_filter(
+            $tables,
+            static fn (string $table): bool => Schema::hasTable($table),
+        ));
     }
 
     protected function migrateUsers(): void

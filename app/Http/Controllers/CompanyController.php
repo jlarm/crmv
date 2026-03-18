@@ -84,7 +84,7 @@ final class CompanyController extends Controller
                 'status' => $request->input('status', ''),
                 'rating' => $request->input('rating', ''),
                 'type' => $request->input('type', ''),
-                'scope' => $scope === 'mine' ? '' : 'all',
+                'scope' => $scope,
                 'include_imported' => $includeImported ? '1' : '',
                 'sort' => $request->input('sort', ''),
                 'direction' => $request->input('direction', 'asc'),

@@ -1,10 +1,10 @@
-import { h } from 'vue';
-import type { ColumnDef } from '@tanstack/vue-table';
-import { Link } from '@inertiajs/vue3';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowUpDown } from 'lucide-vue-next';
-import { show } from '@/routes/company'
+import { Button } from '@/components/ui/button';
+import { show } from '@/routes/company';
+import { Link } from '@inertiajs/vue3';
+import type { ColumnDef } from '@tanstack/vue-table';
+import { ArrowUpDown, ChevronRight } from 'lucide-vue-next';
+import { h } from 'vue';
 
 export interface Company {
     id: number;
@@ -19,7 +19,9 @@ export interface Company {
     ratingVariant: 'outline' | 'destructive';
 }
 
-export function createColumns(onSort: (column: string) => void): ColumnDef<Company>[] {
+export function createColumns(
+    onSort: (column: string) => void,
+): ColumnDef<Company>[] {
     return [
         {
             accessorKey: 'name',
@@ -112,20 +114,25 @@ export function createColumns(onSort: (column: string) => void): ColumnDef<Compa
         },
         {
             accessorKey: 'actions',
-            size: 100,
+            size: 56,
             header: '',
             cell: ({ row }) => {
                 const company = row.original;
                 return h(
                     Link,
-                    { href: show.url(company.id) },
-                    () => h(
-                        Button,
-                        { variant: 'ghost', size: 'sm', as: 'span' },
-                        () => 'View',
-                    ),
+                    {
+                        href: show.url(company.id),
+                        class: 'inline-flex',
+                        'aria-label': `View ${company.name}`,
+                    },
+                    () =>
+                        h(
+                            Button,
+                            { variant: 'ghost', size: 'icon-sm', as: 'span' },
+                            () => h(ChevronRight, { class: 'h-4 w-4' }),
+                        ),
                 );
             },
-        }
+        },
     ];
 }

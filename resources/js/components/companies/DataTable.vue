@@ -1,12 +1,4 @@
 <script setup lang="ts" generic="TData, TValue">
-import { computed } from 'vue';
-import type { ColumnDef, SortingState } from '@tanstack/vue-table';
-import {
-    FlexRender,
-    getCoreRowModel,
-    useVueTable,
-    getSortedRowModel,
-} from '@tanstack/vue-table';
 import {
     Table,
     TableBody,
@@ -15,11 +7,21 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { router } from '@inertiajs/vue3';
+import type { ColumnDef, SortingState } from '@tanstack/vue-table';
+import {
+    FlexRender,
+    getCoreRowModel,
+    getSortedRowModel,
+    useVueTable,
+} from '@tanstack/vue-table';
+import { computed } from 'vue';
 
 const props = defineProps<{
     columns: ColumnDef<TData, TValue>[];
     data: TData[];
     sorting?: { column: string; direction: 'asc' | 'desc' };
+    rowHref?: (row: TData) => string | null;
 }>();
 
 const sorting = computed<SortingState>(() => {
@@ -49,6 +51,28 @@ const table = useVueTable({
     },
     columnResizeMode: 'onChange',
 });
+
+function getRowHref(row: TData): string | null {
+    return props.rowHref?.(row) ?? null;
+}
+
+function visitRow(row: TData, event?: MouseEvent | KeyboardEvent): void {
+    const href = getRowHref(row);
+
+    if (!href) {
+        return;
+    }
+
+    const target = event?.target;
+
+    if (target instanceof Element && target.closest('a, button')) {
+        return;
+    }
+
+    router.visit(href, {
+        preserveScroll: true,
+    });
+}
 </script>
 
 <template>
@@ -78,6 +102,16 @@ const table = useVueTable({
                         v-for="row in table.getRowModel().rows"
                         :key="row.id"
                         :data-state="row.getIsSelected() && 'selected'"
+                        :class="
+                            getRowHref(row.original)
+                                ? 'cursor-pointer focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none'
+                                : undefined
+                        "
+                        :tabindex="getRowHref(row.original) ? 0 : undefined"
+                        :role="getRowHref(row.original) ? 'link' : undefined"
+                        @click="visitRow(row.original, $event)"
+                        @keydown.enter="visitRow(row.original, $event)"
+                        @keydown.space.prevent="visitRow(row.original, $event)"
                     >
                         <TableCell
                             v-for="cell in row.getVisibleCells()"
@@ -92,7 +126,10 @@ const table = useVueTable({
                     </TableRow>
                 </template>
                 <TableRow v-else>
-                    <TableCell :colspan="columns.length" class="h-24 text-center">
+                    <TableCell
+                        :colspan="columns.length"
+                        class="h-24 text-center"
+                    >
                         <div class="text-muted-foreground">
                             No companies found.
                         </div>

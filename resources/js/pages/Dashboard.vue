@@ -1,28 +1,10 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import AppLayout from '@/layouts/AppLayout.vue';
-import { dashboard } from '@/routes';
-import { type BreadcrumbItem } from '@/types';
-import { Form, Head, router } from '@inertiajs/vue3';
-import { useTableFilters } from '@/composables/useTableFilters';
-import LoadingOverlay from '@/components/LoadingOverlay.vue';
-import CompanyFilters from '@/components/CompanyFilters.vue';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Field, FieldLabel } from '@/components/ui/field';
-import InputError from '@/components/InputError.vue';
-import {
-    ChevronLeft,
-    ChevronRight,
-    ChevronsLeft,
-    ChevronsRight,
-    Plus,
-} from 'lucide-vue-next';
-import {
-    type Company,
-    createColumns,
-} from '@/components/companies/columns';
+import { type Company, createColumns } from '@/components/companies/columns';
 import DataTable from '@/components/companies/DataTable.vue';
+import CompanyFilters from '@/components/CompanyFilters.vue';
+import InputError from '@/components/InputError.vue';
+import LoadingOverlay from '@/components/LoadingOverlay.vue';
+import { Button } from '@/components/ui/button';
 import {
     Dialog,
     DialogContent,
@@ -32,6 +14,22 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
+import { Field, FieldLabel } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { useTableFilters } from '@/composables/useTableFilters';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { dashboard } from '@/routes';
+import { show as showCompany } from '@/routes/company';
+import { type BreadcrumbItem } from '@/types';
+import { Form, Head, router } from '@inertiajs/vue3';
+import {
+    ChevronLeft,
+    ChevronRight,
+    ChevronsLeft,
+    ChevronsRight,
+    Plus,
+} from 'lucide-vue-next';
+import { computed, ref } from 'vue';
 
 interface FilterOption {
     value: string;
@@ -83,8 +81,7 @@ const { filters, resetFilters } = useTableFilters({
             typeof props.filters.rating === 'string'
                 ? props.filters.rating
                 : '',
-        type:
-            typeof props.filters.type === 'string' ? props.filters.type : '',
+        type: typeof props.filters.type === 'string' ? props.filters.type : '',
         scope:
             typeof props.filters.scope === 'string' ? props.filters.scope : '',
         include_imported:
@@ -204,7 +201,9 @@ const isCreateCompanyOpen = ref(false);
                             v-slot="{ errors, processing }"
                         >
                             <Field>
-                                <FieldLabel for="create_company_name">Company Name</FieldLabel>
+                                <FieldLabel for="create_company_name"
+                                    >Company Name</FieldLabel
+                                >
                                 <Input
                                     id="create_company_name"
                                     name="name"
@@ -225,6 +224,7 @@ const isCreateCompanyOpen = ref(false);
                 :columns="columns"
                 :data="companies.data"
                 :sorting="currentSorting"
+                :row-href="(company) => showCompany.url(company.id)"
             />
 
             <div class="flex items-center justify-between">

@@ -1,4 +1,9 @@
-export type CompanyShowTab = 'details' | 'progress' | 'stores' | 'contacts';
+export type CompanyShowTab =
+    | 'details'
+    | 'progress'
+    | 'tasks'
+    | 'stores'
+    | 'contacts';
 
 export interface User {
     id: number;
@@ -40,6 +45,28 @@ export interface ProgressItem {
     } | null;
 }
 
+export interface TaskItem {
+    id: number;
+    name: string;
+    description: string | null;
+    taskType: string;
+    priority: string;
+    status: string;
+    dueDate: string | null;
+    assignedTo: {
+        id: number;
+        name: string;
+    } | null;
+    store: {
+        id: number;
+        name: string;
+    } | null;
+    contact: {
+        id: number;
+        name: string;
+    } | null;
+}
+
 export interface Company {
     id: number;
     name: string;
@@ -56,6 +83,7 @@ export interface Company {
     stores: Store[];
     contacts: Contact[];
     progresses: ProgressItem[];
+    tasks: TaskItem[];
     users: {
         data: User[];
     };

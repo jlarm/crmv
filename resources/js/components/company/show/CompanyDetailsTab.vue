@@ -2,6 +2,7 @@
 import { Form } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import { Trash2, Save } from 'lucide-vue-next';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -50,29 +51,26 @@ const filteredConsultants = computed(() => {
     );
 });
 
-const completedProgressTimeline = computed(() => {
-    return props.company.progresses
-        .filter((progress) => !!progress.completedAt)
-        .map((progress) => ({
-            progress,
-            completedAtTs: new Date(progress.completedAt as string).getTime(),
-        }))
-        .filter((item) => !Number.isNaN(item.completedAtTs))
-        .sort((a, b) => b.completedAtTs - a.completedAtTs)
-        .slice(0, 5);
-});
+const openTasks = computed(() =>
+    props.company.tasks.filter((task) => task.status !== 'Completed'),
+);
 
-function formatCompletedAt(value: string): string {
-    const completedAt = new Date(value);
-    if (Number.isNaN(completedAt.getTime())) {
-        return 'Unknown date';
+function formatDueDate(value: string | null): string {
+    if (!value) {
+        return 'No due date';
+    }
+
+    const date = new Date(`${value}T00:00:00`);
+
+    if (Number.isNaN(date.getTime())) {
+        return value;
     }
 
     return new Intl.DateTimeFormat('en-US', {
         month: 'short',
-        day: '2-digit',
+        day: 'numeric',
         year: 'numeric',
-    }).format(completedAt);
+    }).format(date);
 }
 
 function syncConsultantsFromCompany(): void {
@@ -365,40 +363,48 @@ function toggleConsultant(userId: number, checked: boolean | 'indeterminate'): v
 
                 <Card>
                     <CardHeader>
-                        <CardTitle>Completed Progress</CardTitle>
+                        <CardTitle>Open Tasks</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div class="space-y-4">
+                        <div class="space-y-3">
                             <div
-                                v-for="(item, index) in completedProgressTimeline"
-                                :key="item.progress.id"
-                                class="flex gap-3"
+                                v-for="task in openTasks"
+                                :key="task.id"
+                                class="flex items-start justify-between gap-3 rounded-lg border border-border p-3"
                             >
-                                <div class="flex flex-col items-center">
-                                    <div class="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-600"></div>
-                                    <div
-                                        v-if="index < completedProgressTimeline.length - 1"
-                                        class="mt-2 w-px flex-1 bg-slate-200 dark:bg-slate-800"
-                                    ></div>
+                                <div class="min-w-0 space-y-1">
+                                    <div class="flex items-center gap-2">
+                                        <p class="text-sm font-medium">{{ task.name }}</p>
+                                        <Badge
+                                            variant="outline"
+                                            :class="
+                                                task.priority === 'High'
+                                                    ? 'border-red-500 text-red-500'
+                                                    : task.priority === 'Medium'
+                                                      ? 'border-amber-500 text-amber-500'
+                                                      : 'border-sky-500 text-sky-500'
+                                            "
+                                        >
+                                            {{ task.priority }}
+                                        </Badge>
+                                    </div>
+                                    <p class="text-xs text-muted-foreground">
+                                        {{ task.status }}
+                                        <span v-if="task.assignedTo">
+                                            · {{ task.assignedTo.name }}
+                                        </span>
+                                    </p>
                                 </div>
-                                <div class="min-w-0 pb-4">
-                                    <p class="text-xs text-slate-500">
-                                        {{ formatCompletedAt(item.progress.completedAt as string) }}
-                                    </p>
-                                    <p class="text-sm text-slate-900 dark:text-slate-100">
-                                        {{ item.progress.details }}
-                                    </p>
-                                    <p class="text-xs text-slate-500">
-                                        {{ item.progress.contact?.name || 'Unassigned' }}
-                                    </p>
-                                </div>
+                                <span class="shrink-0 text-xs text-muted-foreground">
+                                    {{ formatDueDate(task.dueDate) }}
+                                </span>
                             </div>
 
                             <p
-                                v-if="completedProgressTimeline.length === 0"
+                                v-if="openTasks.length === 0"
                                 class="text-xs text-muted-foreground"
                             >
-                                No completed progress yet.
+                                No open tasks.
                             </p>
                         </div>
                     </CardContent>

@@ -1,16 +1,17 @@
 <script setup lang="ts">
-import { Head, usePage } from '@inertiajs/vue3';
-import { computed, nextTick, ref } from 'vue';
-import AppLayout from '@/layouts/AppLayout.vue';
-import type { BreadcrumbItem } from '@/types';
-import { show } from '@/routes/company';
-import CompanyShowTabs from '@/components/company/show/CompanyShowTabs.vue';
+import CompanyContactsTab from '@/components/company/show/CompanyContactsTab.vue';
 import CompanyDetailsTab from '@/components/company/show/CompanyDetailsTab.vue';
 import CompanyProgressTab from '@/components/company/show/CompanyProgressTab.vue';
+import CompanyShowTabs from '@/components/company/show/CompanyShowTabs.vue';
 import CompanyStoresTab from '@/components/company/show/CompanyStoresTab.vue';
-import CompanyContactsTab from '@/components/company/show/CompanyContactsTab.vue';
+import CompanyTasksTab from '@/components/company/show/CompanyTasksTab.vue';
 import { Badge } from '@/components/ui/badge';
+import AppLayout from '@/layouts/AppLayout.vue';
 import type { Company, CompanyShowTab, User } from '@/pages/Company/types';
+import { show } from '@/routes/company';
+import type { BreadcrumbItem } from '@/types';
+import { Head, usePage } from '@inertiajs/vue3';
+import { computed, nextTick, ref } from 'vue';
 
 interface Props {
     company: Company;
@@ -24,7 +25,8 @@ const page = usePage();
 const company = computed(() => {
     return (
         props.company ??
-        ((page.props.value?.company as Company | undefined) ?? null)
+        (page.props.value?.company as Company | undefined) ??
+        null
     );
 });
 
@@ -46,6 +48,7 @@ const currentCompany = computed(() => company.value as Company);
 const tabScrollPositions = ref<Record<CompanyShowTab, number>>({
     details: 0,
     progress: 0,
+    tasks: 0,
     stores: 0,
     contacts: 0,
 });
@@ -74,15 +77,21 @@ function setActiveTab(tab: CompanyShowTab): void {
         <div v-if="company?.id" class="px-8 py-3">
             <div class="flex shrink-0 items-center justify-between gap-4">
                 <div class="flex flex-col">
-                    <h1 class="text-2xl font-black text-slate-900 dark:text-slate-100">
+                    <h1
+                        class="text-2xl font-black text-slate-900 dark:text-slate-100"
+                    >
                         {{ company.name }}
                     </h1>
                     <div class="mt-1 flex items-center gap-1">
                         <p class="text-xs text-zinc-400 dark:text-zinc-500">
                             ID: {{ company.id }}
                         </p>
-                        <Badge variant="secondary" class="ml-2">{{ company.status }}</Badge>
-                        <Badge variant="secondary" class="ml-2">{{ company.rating }}</Badge>
+                        <Badge variant="secondary" class="ml-2">{{
+                            company.status
+                        }}</Badge>
+                        <Badge variant="secondary" class="ml-2">{{
+                            company.rating
+                        }}</Badge>
                     </div>
                 </div>
             </div>
@@ -101,6 +110,12 @@ function setActiveTab(tab: CompanyShowTab): void {
             <CompanyProgressTab
                 v-if="activeTab === 'progress'"
                 :company="currentCompany"
+            />
+
+            <CompanyTasksTab
+                v-if="activeTab === 'tasks'"
+                :company="currentCompany"
+                :all-users="props.allUsers"
             />
 
             <CompanyStoresTab

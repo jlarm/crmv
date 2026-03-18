@@ -6,8 +6,10 @@ use App\Http\Controllers\CompanyContactController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CompanyProgressController;
 use App\Http\Controllers\CompanyStoreController;
+use App\Http\Controllers\CompanyTaskController;
 use App\Http\Controllers\CompanyUserController;
 use App\Http\Controllers\OrganizationController;
+use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserManagementController;
 use Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests;
 use Illuminate\Support\Facades\Route;
@@ -54,6 +56,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('companies/{company}/users', [CompanyUserController::class, 'update'])
         ->name('companies.users.update');
 
+    Route::post('companies/{company}/tasks', [CompanyTaskController::class, 'store'])
+        ->name('companies.tasks.store');
+    Route::put('companies/{company}/tasks/{task}', [CompanyTaskController::class, 'update'])
+        ->name('companies.tasks.update');
+    Route::delete('companies/{company}/tasks/{task}', [CompanyTaskController::class, 'destroy'])
+        ->name('companies.tasks.destroy');
+
     Route::get('/users', [UserManagementController::class, 'index'])
         ->name('users.index');
     Route::post('/users', [UserManagementController::class, 'store'])
@@ -62,6 +71,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('users.organizations.update');
     Route::delete('/users/{user}', [UserManagementController::class, 'destroy'])
         ->name('users.destroy');
+
+    Route::resource('tasks', TaskController::class)
+        ->except(['show']);
 });
 
 Route::resource('company', CompanyController::class)

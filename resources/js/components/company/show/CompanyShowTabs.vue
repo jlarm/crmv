@@ -22,7 +22,7 @@ function setActiveTab(tab: CompanyShowTab): void {
                 class="pb-3 transition-colors"
                 :class="
                     activeTab === 'details'
-                        ? 'text-orange-600 border-b-2 border-orange-500'
+                        ? 'border-b-2 border-orange-500 text-orange-600'
                         : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-200'
                 "
                 @click="setActiveTab('details')"
@@ -34,7 +34,7 @@ function setActiveTab(tab: CompanyShowTab): void {
                 class="pb-3 transition-colors"
                 :class="
                     activeTab === 'progress'
-                        ? 'text-orange-600 border-b-2 border-orange-500'
+                        ? 'border-b-2 border-orange-500 text-orange-600'
                         : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-200'
                 "
                 @click="setActiveTab('progress')"
@@ -45,8 +45,20 @@ function setActiveTab(tab: CompanyShowTab): void {
                 type="button"
                 class="pb-3 transition-colors"
                 :class="
+                    activeTab === 'tasks'
+                        ? 'border-b-2 border-orange-500 text-orange-600'
+                        : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-200'
+                "
+                @click="setActiveTab('tasks')"
+            >
+                Tasks
+            </button>
+            <button
+                type="button"
+                class="pb-3 transition-colors"
+                :class="
                     activeTab === 'stores'
-                        ? 'text-orange-600 border-b-2 border-orange-500'
+                        ? 'border-b-2 border-orange-500 text-orange-600'
                         : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-200'
                 "
                 @click="setActiveTab('stores')"
@@ -58,7 +70,7 @@ function setActiveTab(tab: CompanyShowTab): void {
                 class="pb-3 transition-colors"
                 :class="
                     activeTab === 'contacts'
-                        ? 'text-orange-600 border-b-2 border-orange-500'
+                        ? 'border-b-2 border-orange-500 text-orange-600'
                         : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-200'
                 "
                 @click="setActiveTab('contacts')"

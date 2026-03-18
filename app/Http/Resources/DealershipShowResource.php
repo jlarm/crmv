@@ -64,6 +64,35 @@ final class DealershipShowResource extends JsonResource
                         : null,
                 ]);
             }),
+            'tasks' => $this->whenLoaded('tasks', function () {
+                return $this->tasks->map(fn ($task) => [
+                    'id' => $task->id,
+                    'name' => $task->name,
+                    'description' => $task->description,
+                    'taskType' => $task->task_type,
+                    'priority' => $task->priority,
+                    'status' => $task->status,
+                    'dueDate' => $task->due_date?->toDateString(),
+                    'assignedTo' => $task->assignedTo
+                        ? [
+                            'id' => $task->assignedTo->id,
+                            'name' => $task->assignedTo->name,
+                        ]
+                        : null,
+                    'store' => $task->store
+                        ? [
+                            'id' => $task->store->id,
+                            'name' => $task->store->name,
+                        ]
+                        : null,
+                    'contact' => $task->contact
+                        ? [
+                            'id' => $task->contact->id,
+                            'name' => $task->contact->name,
+                        ]
+                        : null,
+                ]);
+            }),
             'users' => UserResource::collection($this->whenLoaded('users')),
         ];
     }

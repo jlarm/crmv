@@ -67,6 +67,11 @@ final class Company extends Model
         return $this->hasMany(Progress::class);
     }
 
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class);
+    }
+
     public function dealerEmails(): HasMany
     {
         return $this->hasMany(DealerEmail::class);

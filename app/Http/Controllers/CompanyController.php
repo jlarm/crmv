@@ -9,7 +9,7 @@ use App\Http\Requests\DealershipUpdateRequest;
 use App\Http\Resources\DealershipResource;
 use App\Http\Resources\DealershipShowResource;
 use App\Models\Company;
-use App\Models\Progress;
+use App\Models\Task;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
@@ -85,56 +85,70 @@ final class CompanyController extends Controller
             ])
             ->all();
 
-        $today = CarbonImmutable::today();
-        $nextWeek = $today->addDays(7);
+        $upcomingDays = (int) $request->input('upcoming_days', 7);
+        if (! in_array($upcomingDays, [7, 14, 30], true)) {
+            $upcomingDays = 7;
+        }
 
-        $buildProgressQuery = function () use ($applyCompanyFilters): Builder {
-            return Progress::query()
-                ->with(['company:id,name', 'contact:id,name'])
-                ->whereNull('completed_at')
-                ->whereNotNull('date')
+        $today = CarbonImmutable::today();
+        $upcomingCutoff = $today->addDays($upcomingDays);
+
+        $buildTaskQuery = function () use ($applyCompanyFilters): Builder {
+            return Task::query()
+                ->with(['company:id,name', 'contact:id,name', 'assignedTo:id,name'])
+                ->whereNotIn('status', ['Completed'])
+                ->whereNotNull('due_date')
                 ->whereHas('company', function (Builder $query) use ($applyCompanyFilters): void {
                     $applyCompanyFilters($query);
                 });
         };
 
-        $mapDashboardProgress = static fn (Progress $progress): array => [
-            'id' => $progress->id,
-            'details' => $progress->details,
-            'date' => $progress->date?->toDateString(),
+        $mapDashboardTask = static fn (Task $task): array => [
+            'id' => $task->id,
+            'name' => $task->name,
+            'status' => $task->status,
+            'priority' => $task->priority,
+            'taskType' => $task->task_type,
+            'dueDate' => $task->due_date?->toDateString(),
             'company' => [
-                'id' => $progress->company->id,
-                'name' => $progress->company->name,
+                'id' => $task->company->id,
+                'name' => $task->company->name,
             ],
-            'contact' => $progress->contact
+            'contact' => $task->contact
                 ? [
-                    'id' => $progress->contact->id,
-                    'name' => $progress->contact->name,
+                    'id' => $task->contact->id,
+                    'name' => $task->contact->name,
+                ]
+                : null,
+            'assignedTo' => $task->assignedTo
+                ? [
+                    'id' => $task->assignedTo->id,
+                    'name' => $task->assignedTo->name,
                 ]
                 : null,
         ];
 
-        $upcomingProgresses = $buildProgressQuery()
-            ->whereDate('date', '>=', $today)
-            ->whereDate('date', '<=', $nextWeek)
-            ->orderBy('date')
+        $upcomingTasks = $buildTaskQuery()
+            ->whereDate('due_date', '>=', $today)
+            ->whereDate('due_date', '<=', $upcomingCutoff)
+            ->orderBy('due_date')
             ->orderBy('id')
             ->get()
-            ->map($mapDashboardProgress)
+            ->map($mapDashboardTask)
             ->all();
 
-        $pastDueProgresses = $buildProgressQuery()
-            ->whereDate('date', '<', $today)
-            ->orderBy('date')
+        $pastDueTasks = $buildTaskQuery()
+            ->whereDate('due_date', '<', $today)
+            ->orderBy('due_date')
             ->orderBy('id')
             ->get()
-            ->map($mapDashboardProgress)
+            ->map($mapDashboardTask)
             ->all();
 
         return Inertia::render('Dashboard', [
             'companies' => $dealerships,
-            'upcomingProgresses' => $upcomingProgresses,
-            'pastDueProgresses' => $pastDueProgresses,
+            'upcomingTasks' => $upcomingTasks,
+            'pastDueTasks' => $pastDueTasks,
             'filters' => [
                 'search' => $request->input('search', ''),
                 'status' => $request->input('status', ''),
@@ -144,6 +158,7 @@ final class CompanyController extends Controller
                 'include_imported' => $includeImported ? '1' : '',
                 'sort' => $request->input('sort', ''),
                 'direction' => $request->input('direction', 'asc'),
+                'upcoming_days' => (string) $upcomingDays,
             ],
             'filterOptions' => [
                 'statuses' => [
@@ -166,6 +181,15 @@ final class CompanyController extends Controller
             'users' => fn ($query) => $query->select('id', 'name'),
             'stores',
             'contacts',
+            'tasks' => fn ($query) => $query
+                ->with([
+                    'assignedTo:id,name',
+                    'store:id,name',
+                    'contact:id,name',
+                ])
+                ->orderByRaw('due_date is null')
+                ->orderBy('due_date')
+                ->orderBy('name'),
             'progresses' => fn ($query) => $query
                 ->with(['contact:id,name'])
                 ->orderByRaw('completed_at is not null')

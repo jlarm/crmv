@@ -7,6 +7,7 @@ use App\Models\Contact;
 use App\Models\Organization;
 use App\Models\Progress;
 use App\Models\Store;
+use App\Models\Task;
 use App\Models\User;
 
 function createCompanyContext(bool $isAdmin = false): array
@@ -196,4 +197,85 @@ test('company users can be synced', function () {
     $response->assertSessionHas('success', 'Company users updated successfully.');
     expect($company->fresh()->users()->pluck('users.id')->sort()->values()->all())
         ->toBe([$userA->id, $userB->id]);
+});
+
+test('can create update and delete tasks for a company', function () {
+    [$user, $company] = createCompanyContext();
+    $this->actingAs($user);
+
+    $store = Store::query()->create([
+        'company_id' => $company->id,
+        'user_id' => $user->id,
+        'name' => 'Store A',
+    ]);
+
+    $contact = Contact::query()->create([
+        'company_id' => $company->id,
+        'name' => 'Contact A',
+    ]);
+
+    $create = $this->post(route('companies.tasks.store', $company), [
+        'name' => 'Initial task',
+        'description' => 'Call the store manager',
+        'task_type' => 'Call',
+        'priority' => 'High',
+        'status' => 'Open',
+        'due_date' => '2026-03-25',
+        'assigned_to' => $user->id,
+        'store_id' => $store->id,
+        'contact_id' => $contact->id,
+    ]);
+    $create->assertRedirect();
+    $create->assertSessionHas('success', 'Task created successfully.');
+
+    $task = Task::query()->where('company_id', $company->id)->firstOrFail();
+    expect($task->store_id)->toBe($store->id);
+    expect($task->contact_id)->toBe($contact->id);
+
+    $update = $this->put(route('companies.tasks.update', [$company, $task]), [
+        'name' => 'Updated task',
+        'description' => null,
+        'task_type' => 'Meeting',
+        'priority' => 'Medium',
+        'status' => 'In Progress',
+        'due_date' => '2026-03-26',
+        'assigned_to' => null,
+        'store_id' => null,
+        'contact_id' => $contact->id,
+    ]);
+    $update->assertRedirect();
+    $update->assertSessionHas('success', 'Task updated successfully.');
+    expect($task->fresh()->name)->toBe('Updated task');
+    expect($task->fresh()->assigned_to)->toBeNull();
+
+    $delete = $this->delete(route('companies.tasks.destroy', [$company, $task]));
+    $delete->assertRedirect();
+    $delete->assertSessionHas('success', 'Task deleted successfully.');
+    $this->assertDatabaseMissing('tasks', ['id' => $task->id]);
+});
+
+test('task store and contact must belong to the same company', function () {
+    [$user, $company] = createCompanyContext();
+    [, $otherCompany] = createCompanyContext();
+    $this->actingAs($user);
+
+    $otherStore = Store::query()->create([
+        'company_id' => $otherCompany->id,
+        'user_id' => $user->id,
+        'name' => 'Other Store',
+    ]);
+
+    $otherContact = Contact::query()->create([
+        'company_id' => $otherCompany->id,
+        'name' => 'Other Contact',
+    ]);
+
+    $this->post(route('companies.tasks.store', $company), [
+        'name' => 'Invalid task',
+        'task_type' => 'Call',
+        'priority' => 'Low',
+        'status' => 'Open',
+        'store_id' => $otherStore->id,
+        'contact_id' => $otherContact->id,
+    ])->assertSessionHasErrors(['store_id', 'contact_id']);
 });

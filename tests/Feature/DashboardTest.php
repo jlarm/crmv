@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Models\Company;
 use App\Models\Organization;
-use App\Models\Progress;
+use App\Models\Task;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -86,7 +86,7 @@ test('dashboard defaults to my companies and can filter to all companies', funct
             ->has('companies.data', 3));
 });
 
-test('dashboard shows upcoming and past due progress cards for visible companies', function () {
+test('dashboard shows upcoming and past due task cards for visible companies', function () {
     CarbonImmutable::setTestNow('2026-03-18 09:00:00');
 
     $organization = Organization::factory()->create();
@@ -118,33 +118,44 @@ test('dashboard shows upcoming and past due progress cards for visible companies
         'type' => 'general',
     ]);
 
-    $upcomingProgress = Progress::query()->create([
-        'user_id' => $user->id,
+    $upcomingTask = Task::query()->create([
         'company_id' => $ownedCompany->id,
-        'details' => 'Call before renewal window',
-        'date' => '2026-03-22',
+        'assigned_to' => $user->id,
+        'name' => 'Call before renewal window',
+        'task_type' => 'Call',
+        'priority' => 'High',
+        'status' => 'Open',
+        'due_date' => '2026-03-22',
     ]);
 
-    $pastDueProgress = Progress::query()->create([
-        'user_id' => $user->id,
+    $pastDueTask = Task::query()->create([
         'company_id' => $ownedCompany->id,
-        'details' => 'Send overdue proposal',
-        'date' => '2026-03-15',
+        'assigned_to' => $user->id,
+        'name' => 'Send overdue proposal',
+        'task_type' => 'Email',
+        'priority' => 'Medium',
+        'status' => 'In Progress',
+        'due_date' => '2026-03-15',
     ]);
 
-    Progress::query()->create([
-        'user_id' => $user->id,
+    Task::query()->create([
         'company_id' => $ownedCompany->id,
-        'details' => 'Already completed',
-        'date' => '2026-03-20',
-        'completed_at' => '2026-03-18 12:00:00',
+        'assigned_to' => $user->id,
+        'name' => 'Already completed',
+        'task_type' => 'Meeting',
+        'priority' => 'Low',
+        'status' => 'Completed',
+        'due_date' => '2026-03-20',
     ]);
 
-    Progress::query()->create([
-        'user_id' => $otherUser->id,
+    Task::query()->create([
         'company_id' => $otherCompany->id,
-        'details' => 'Other company task',
-        'date' => '2026-03-20',
+        'assigned_to' => $otherUser->id,
+        'name' => 'Other company task',
+        'task_type' => 'Call',
+        'priority' => 'Low',
+        'status' => 'Open',
+        'due_date' => '2026-03-20',
     ]);
 
     $this->actingAs($user);
@@ -153,19 +164,19 @@ test('dashboard shows upcoming and past due progress cards for visible companies
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Dashboard')
-            ->has('upcomingProgresses', 1)
-            ->has('pastDueProgresses', 1)
-            ->where('upcomingProgresses.0.id', $upcomingProgress->id)
-            ->where('upcomingProgresses.0.company.id', $ownedCompany->id)
-            ->where('pastDueProgresses.0.id', $pastDueProgress->id)
-            ->where('pastDueProgresses.0.company.id', $ownedCompany->id));
+            ->has('upcomingTasks', 1)
+            ->has('pastDueTasks', 1)
+            ->where('upcomingTasks.0.id', $upcomingTask->id)
+            ->where('upcomingTasks.0.company.id', $ownedCompany->id)
+            ->where('pastDueTasks.0.id', $pastDueTask->id)
+            ->where('pastDueTasks.0.company.id', $ownedCompany->id));
 
     $this->get(route('dashboard', ['scope' => 'all']))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Dashboard')
-            ->has('upcomingProgresses', 2)
-            ->has('pastDueProgresses', 1));
+            ->has('upcomingTasks', 2)
+            ->has('pastDueTasks', 1));
 
     CarbonImmutable::setTestNow();
 });

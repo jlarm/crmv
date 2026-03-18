@@ -35,6 +35,11 @@ final class Contact extends Model
         return $this->hasMany(Progress::class);
     }
 
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class);
+    }
+
     public function tags(): BelongsToMany
     {
         return $this->belongsToMany(Tag::class);

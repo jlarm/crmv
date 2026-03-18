@@ -214,9 +214,9 @@ const isCreateCompanyOpen = ref(false);
             <div class="grid gap-4 xl:grid-cols-2">
                 <Card>
                     <CardHeader class="space-y-1">
-                        <CardTitle>Upcoming Progress</CardTitle>
+                        <CardTitle>Upcoming History</CardTitle>
                         <p class="text-sm text-muted-foreground">
-                            Open progress due within the next 7 days.
+                            Open history items due within the next 7 days.
                         </p>
                     </CardHeader>
                     <CardContent class="max-h-[16rem] overflow-y-auto pr-2">
@@ -255,16 +255,16 @@ const isCreateCompanyOpen = ref(false);
                             </Link>
                         </div>
                         <p v-else class="text-sm text-muted-foreground">
-                            No upcoming progress due in the next 7 days.
+                            No upcoming history items due in the next 7 days.
                         </p>
                     </CardContent>
                 </Card>
 
                 <Card>
                     <CardHeader class="space-y-1">
-                        <CardTitle>Past Due Progress</CardTitle>
+                        <CardTitle>Past Due History</CardTitle>
                         <p class="text-sm text-muted-foreground">
-                            Open progress items with due dates before today.
+                            Open history items with due dates before today.
                         </p>
                     </CardHeader>
                     <CardContent class="max-h-[16rem] overflow-y-auto pr-2">
@@ -303,7 +303,7 @@ const isCreateCompanyOpen = ref(false);
                             </Link>
                         </div>
                         <p v-else class="text-sm text-muted-foreground">
-                            No past due progress items.
+                            No past due history items.
                         </p>
                     </CardContent>
                 </Card>

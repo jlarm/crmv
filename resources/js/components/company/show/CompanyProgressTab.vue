@@ -112,7 +112,7 @@ function toggleProgressComplete(progress: ProgressItem, checked: boolean | 'inde
         <Card>
             <CardHeader class="flex items-center justify-between gap-4 sm:flex-row">
                 <div class="space-y-1">
-                    <CardTitle>Progress</CardTitle>
+                    <CardTitle>History</CardTitle>
                     <p class="text-xs text-muted-foreground">
                         Track key moments with a contact attached.
                     </p>
@@ -189,7 +189,7 @@ function toggleProgressComplete(progress: ProgressItem, checked: boolean | 'inde
                         v-if="company.progresses.length === 0"
                         class="text-xs text-muted-foreground"
                     >
-                        No progress entries yet.
+                        No history entries yet.
                     </p>
                 </div>
             </CardContent>
@@ -198,7 +198,7 @@ function toggleProgressComplete(progress: ProgressItem, checked: boolean | 'inde
         <Dialog v-model:open="isProgressCreateOpen">
             <DialogContent class="sm:max-w-lg">
                 <DialogHeader>
-                    <DialogTitle>Add progress item</DialogTitle>
+                    <DialogTitle>Add history item</DialogTitle>
                     <DialogDescription>
                         Log a step with an optional contact and due date.
                     </DialogDescription>
@@ -294,7 +294,7 @@ function toggleProgressComplete(progress: ProgressItem, checked: boolean | 'inde
         <Dialog v-model:open="isProgressEditOpen">
             <DialogContent class="sm:max-w-lg">
                 <DialogHeader>
-                    <DialogTitle>Edit progress item</DialogTitle>
+                    <DialogTitle>Edit history item</DialogTitle>
                     <DialogDescription>
                         Update the details, contact, or due date.
                     </DialogDescription>

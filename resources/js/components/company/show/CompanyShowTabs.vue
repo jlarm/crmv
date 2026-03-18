@@ -39,7 +39,7 @@ function setActiveTab(tab: CompanyShowTab): void {
                 "
                 @click="setActiveTab('progress')"
             >
-                Progress
+                History
             </button>
             <button
                 type="button"

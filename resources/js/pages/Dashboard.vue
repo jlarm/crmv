@@ -99,6 +99,8 @@ const { filters, resetFilters } = useTableFilters({
     },
     debounceMs: 500,
     onlyProps: ['companies', 'filters'],
+    storageKey: 'dashboard-company-filters',
+    persistedKeys: ['scope'],
 });
 
 function handleSort(column: string): void {

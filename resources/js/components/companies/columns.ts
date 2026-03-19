@@ -1,5 +1,5 @@
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ratingClass, statusClass } from '@/lib/utils';
 import { show } from '@/routes/company';
 import { Link } from '@inertiajs/vue3';
 import type { ColumnDef } from '@tanstack/vue-table';
@@ -13,10 +13,8 @@ export interface Company {
     state: string;
     status: string;
     statusLabel: string;
-    statusVariant: 'default' | 'secondary';
     rating: string;
     ratingLabel: string;
-    ratingVariant: 'outline' | 'destructive';
 }
 
 export function createColumns(
@@ -80,9 +78,9 @@ export function createColumns(
             cell: ({ row }) => {
                 const company = row.original;
                 return h(
-                    Badge,
-                    { variant: company.statusVariant },
-                    () => company.statusLabel,
+                    'span',
+                    { class: `inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${statusClass(company.status)}` },
+                    company.statusLabel,
                 );
             },
         },
@@ -106,9 +104,9 @@ export function createColumns(
             cell: ({ row }) => {
                 const company = row.original;
                 return h(
-                    Badge,
-                    { variant: company.ratingVariant },
-                    () => company.ratingLabel,
+                    'span',
+                    { class: `inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${ratingClass(company.rating)}` },
+                    company.ratingLabel,
                 );
             },
         },

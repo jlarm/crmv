@@ -196,3 +196,63 @@ test('authenticated users can manage tasks', function () {
         'id' => $task->id,
     ]);
 });
+
+test('tasks index only shows tasks for companies in the current organization', function () {
+    $primaryOrganization = Organization::factory()->create();
+    $secondaryOrganization = Organization::factory()->create();
+
+    $user = User::factory()->create([
+        'current_organization_id' => $primaryOrganization->id,
+    ]);
+
+    $user->organizations()->attach([$primaryOrganization->id, $secondaryOrganization->id]);
+
+    $primaryCompany = Company::query()->create([
+        'organization_id' => $primaryOrganization->id,
+        'user_id' => $user->id,
+        'name' => 'Primary Org Company',
+        'status' => 'active',
+        'rating' => 'warm',
+        'type' => 'general',
+    ]);
+
+    $secondaryCompany = Company::withoutGlobalScopes()->create([
+        'organization_id' => $secondaryOrganization->id,
+        'user_id' => $user->id,
+        'name' => 'Secondary Org Company',
+        'status' => 'active',
+        'rating' => 'warm',
+        'type' => 'general',
+    ]);
+
+    $primaryTask = Task::query()->create([
+        'name' => 'Task in primary org',
+        'task_type' => 'Call',
+        'priority' => 'High',
+        'status' => 'Open',
+        'due_date' => '2026-03-20',
+        'company_id' => $primaryCompany->id,
+        'assigned_to' => $user->id,
+    ]);
+
+    Task::query()->create([
+        'name' => 'Task in secondary org',
+        'task_type' => 'Email',
+        'priority' => 'High',
+        'status' => 'Open',
+        'due_date' => '2026-03-21',
+        'company_id' => $secondaryCompany->id,
+        'assigned_to' => $user->id,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('tasks.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Tasks/Index')
+            ->where('prioritySummary.0.label', 'High')
+            ->where('prioritySummary.0.count', 1)
+            ->has('tasksByPriority.High', 1)
+            ->where('tasksByPriority.High.0.id', $primaryTask->id)
+            ->where('tasksByPriority.High.0.company.name', 'Primary Org Company'));
+});

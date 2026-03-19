@@ -29,6 +29,7 @@ final class TaskController extends Controller
                 'contact:id,name',
             ])
             ->where('assigned_to', $request->user()->id)
+            ->whereHas('company')
             ->orderByRaw('due_date is null')
             ->orderBy('due_date')
             ->orderBy('name')

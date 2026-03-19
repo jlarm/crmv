@@ -19,7 +19,7 @@ function setActiveTab(tab: CompanyShowTab): void {
         <nav class="flex gap-8 text-sm font-medium">
             <button
                 type="button"
-                class="pb-3 transition-colors"
+                class="pb-3 transition-colors cursor-pointer"
                 :class="
                     activeTab === 'details'
                         ? 'border-b-2 border-orange-500 text-orange-600'
@@ -31,7 +31,7 @@ function setActiveTab(tab: CompanyShowTab): void {
             </button>
             <button
                 type="button"
-                class="pb-3 transition-colors"
+                class="pb-3 transition-colors cursor-pointer"
                 :class="
                     activeTab === 'progress'
                         ? 'border-b-2 border-orange-500 text-orange-600'
@@ -43,7 +43,7 @@ function setActiveTab(tab: CompanyShowTab): void {
             </button>
             <button
                 type="button"
-                class="pb-3 transition-colors"
+                class="pb-3 transition-colors cursor-pointer"
                 :class="
                     activeTab === 'tasks'
                         ? 'border-b-2 border-orange-500 text-orange-600'
@@ -55,7 +55,7 @@ function setActiveTab(tab: CompanyShowTab): void {
             </button>
             <button
                 type="button"
-                class="pb-3 transition-colors"
+                class="pb-3 transition-colors cursor-pointer"
                 :class="
                     activeTab === 'stores'
                         ? 'border-b-2 border-orange-500 text-orange-600'
@@ -67,7 +67,7 @@ function setActiveTab(tab: CompanyShowTab): void {
             </button>
             <button
                 type="button"
-                class="pb-3 transition-colors"
+                class="pb-3 transition-colors cursor-pointer"
                 :class="
                     activeTab === 'contacts'
                         ? 'border-b-2 border-orange-500 text-orange-600'

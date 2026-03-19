@@ -12,6 +12,7 @@ import { show } from '@/routes/company';
 import type { BreadcrumbItem } from '@/types';
 import { Head, usePage } from '@inertiajs/vue3';
 import { computed, nextTick, ref } from 'vue';
+import { cn, ratingClass, statusClass } from '@/lib/utils';
 
 interface Props {
     company: Company;
@@ -86,12 +87,14 @@ function setActiveTab(tab: CompanyShowTab): void {
                         <p class="text-xs text-zinc-400 dark:text-zinc-500">
                             ID: {{ company.id }}
                         </p>
-                        <Badge variant="secondary" class="ml-2">{{
-                            company.status
-                        }}</Badge>
-                        <Badge variant="secondary" class="ml-2">{{
-                            company.rating
-                        }}</Badge>
+                        <Badge
+                            :class="cn('ml-2', statusClass(company.status))"
+                            >{{ company.status }}</Badge
+                        >
+                        <Badge
+                            :class="cn('ml-2', ratingClass(company.rating))"
+                            >{{ company.rating }}</Badge
+                        >
                     </div>
                 </div>
             </div>

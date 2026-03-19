@@ -3,6 +3,13 @@ import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
@@ -116,20 +123,20 @@ function submit(): void {
                             <label for="task_type" class="text-sm font-medium">
                                 Task Type
                             </label>
-                            <select
-                                id="task_type"
-                                v-model="form.task_type"
-                                class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
-                            >
-                                <option
-                                    v-for="taskType in props.formOptions
-                                        .taskTypes"
-                                    :key="taskType"
-                                    :value="taskType"
-                                >
-                                    {{ taskType }}
-                                </option>
-                            </select>
+                            <Select v-model="form.task_type">
+                                <SelectTrigger id="task_type">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem
+                                        v-for="taskType in props.formOptions.taskTypes"
+                                        :key="taskType"
+                                        :value="taskType"
+                                    >
+                                        {{ taskType }}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
                             <InputError :message="form.errors.task_type" />
                         </div>
 
@@ -137,20 +144,20 @@ function submit(): void {
                             <label for="priority" class="text-sm font-medium">
                                 Priority
                             </label>
-                            <select
-                                id="priority"
-                                v-model="form.priority"
-                                class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
-                            >
-                                <option
-                                    v-for="priority in props.formOptions
-                                        .priorities"
-                                    :key="priority"
-                                    :value="priority"
-                                >
-                                    {{ priority }}
-                                </option>
-                            </select>
+                            <Select v-model="form.priority">
+                                <SelectTrigger id="priority">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem
+                                        v-for="priority in props.formOptions.priorities"
+                                        :key="priority"
+                                        :value="priority"
+                                    >
+                                        {{ priority }}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
                             <InputError :message="form.errors.priority" />
                         </div>
 
@@ -158,19 +165,20 @@ function submit(): void {
                             <label for="status" class="text-sm font-medium">
                                 Status
                             </label>
-                            <select
-                                id="status"
-                                v-model="form.status"
-                                class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
-                            >
-                                <option
-                                    v-for="status in props.formOptions.statuses"
-                                    :key="status"
-                                    :value="status"
-                                >
-                                    {{ status }}
-                                </option>
-                            </select>
+                            <Select v-model="form.status">
+                                <SelectTrigger id="status">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem
+                                        v-for="status in props.formOptions.statuses"
+                                        :key="status"
+                                        :value="status"
+                                    >
+                                        {{ status }}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
                             <InputError :message="form.errors.status" />
                         </div>
 
@@ -193,20 +201,24 @@ function submit(): void {
                             >
                                 Assigned To
                             </label>
-                            <select
-                                id="assigned_to"
-                                v-model="form.assigned_to"
-                                class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+                            <Select
+                                :model-value="form.assigned_to || '_unassigned_'"
+                                @update:model-value="form.assigned_to = $event === '_unassigned_' ? '' : $event"
                             >
-                                <option value="">Unassigned</option>
-                                <option
-                                    v-for="user in props.formOptions.users"
-                                    :key="user.id"
-                                    :value="String(user.id)"
-                                >
-                                    {{ user.name }}
-                                </option>
-                            </select>
+                                <SelectTrigger id="assigned_to">
+                                    <SelectValue placeholder="Unassigned" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="_unassigned_">Unassigned</SelectItem>
+                                    <SelectItem
+                                        v-for="user in props.formOptions.users"
+                                        :key="user.id"
+                                        :value="String(user.id)"
+                                    >
+                                        {{ user.name }}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
                             <InputError :message="form.errors.assigned_to" />
                         </div>
 
@@ -214,20 +226,24 @@ function submit(): void {
                             <label for="store_id" class="text-sm font-medium">
                                 Store
                             </label>
-                            <select
-                                id="store_id"
-                                v-model="form.store_id"
-                                class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+                            <Select
+                                :model-value="form.store_id || '_none_'"
+                                @update:model-value="form.store_id = $event === '_none_' ? '' : $event"
                             >
-                                <option value="">No Store</option>
-                                <option
-                                    v-for="store in props.formOptions.stores"
-                                    :key="store.id"
-                                    :value="String(store.id)"
-                                >
-                                    {{ store.name }}
-                                </option>
-                            </select>
+                                <SelectTrigger id="store_id">
+                                    <SelectValue placeholder="No Store" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="_none_">No Store</SelectItem>
+                                    <SelectItem
+                                        v-for="store in props.formOptions.stores"
+                                        :key="store.id"
+                                        :value="String(store.id)"
+                                    >
+                                        {{ store.name }}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
                             <InputError :message="form.errors.store_id" />
                         </div>
 
@@ -235,21 +251,24 @@ function submit(): void {
                             <label for="contact_id" class="text-sm font-medium">
                                 Contact
                             </label>
-                            <select
-                                id="contact_id"
-                                v-model="form.contact_id"
-                                class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+                            <Select
+                                :model-value="form.contact_id || '_none_'"
+                                @update:model-value="form.contact_id = $event === '_none_' ? '' : $event"
                             >
-                                <option value="">No Contact</option>
-                                <option
-                                    v-for="contact in props.formOptions
-                                        .contacts"
-                                    :key="contact.id"
-                                    :value="String(contact.id)"
-                                >
-                                    {{ contact.name }}
-                                </option>
-                            </select>
+                                <SelectTrigger id="contact_id">
+                                    <SelectValue placeholder="No Contact" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="_none_">No Contact</SelectItem>
+                                    <SelectItem
+                                        v-for="contact in props.formOptions.contacts"
+                                        :key="contact.id"
+                                        :value="String(contact.id)"
+                                    >
+                                        {{ contact.name }}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
                             <InputError :message="form.errors.contact_id" />
                         </div>
 

@@ -72,6 +72,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/users/{user}', [UserManagementController::class, 'destroy'])
         ->name('users.destroy');
 
+    Route::get('/tasks/company-search', [TaskController::class, 'searchCompanies'])
+        ->name('tasks.company-search');
+    Route::get('/tasks/companies/{company}/options', [TaskController::class, 'companyOptions'])
+        ->name('tasks.company-options');
     Route::resource('tasks', TaskController::class)
         ->except(['show']);
 });

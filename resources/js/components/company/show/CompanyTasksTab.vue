@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import InputError from '@/components/InputError.vue';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Dialog,
     DialogContent,
@@ -11,18 +13,11 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Field, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import type { Company, TaskItem, User } from '@/pages/Company/types';
 import { Form, router } from '@inertiajs/vue3';
-import { MoreVertical } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 
 const props = defineProps<{
@@ -34,12 +29,45 @@ const isTaskCreateOpen = ref(false);
 const isTaskEditOpen = ref(false);
 const editingTask = ref<TaskItem | null>(null);
 
+const priorityOrder = ['High', 'Medium', 'Low'] as const;
 const taskTypes = ['Call', 'Email', 'Meeting'];
 const priorities = ['Low', 'Medium', 'High'];
 const statuses = ['Open', 'In Progress', 'Completed'];
 
 const availableUsers = computed(() => {
     return props.allUsers;
+});
+
+const completedTasks = computed(() => {
+    return props.company.tasks.filter((task) => task.status === 'Completed');
+});
+
+const activeTasksByPriority = computed(() => {
+    return {
+        High: props.company.tasks.filter((task) => {
+            return task.status !== 'Completed' && task.priority === 'High';
+        }),
+        Medium: props.company.tasks.filter((task) => {
+            return task.status !== 'Completed' && task.priority === 'Medium';
+        }),
+        Low: props.company.tasks.filter((task) => {
+            return task.status !== 'Completed' && task.priority === 'Low';
+        }),
+    };
+});
+
+const prioritySummary = computed(() => {
+    return priorityOrder.map((label) => ({
+        label,
+        count: activeTasksByPriority.value[label].length,
+    }));
+});
+
+const hasNoTasks = computed(() => {
+    return (
+        prioritySummary.value.every((summary) => summary.count === 0) &&
+        completedTasks.value.length === 0
+    );
 });
 
 function handleTaskCreateSuccess(): void {
@@ -57,6 +85,35 @@ function deleteTask(companyId: number, task: TaskItem): void {
     }
 
     router.delete(`/companies/${companyId}/tasks/${task.id}`);
+}
+
+function toggleTaskComplete(
+    companyId: number,
+    task: TaskItem,
+    checked: boolean | 'indeterminate',
+): void {
+    if (checked === 'indeterminate') {
+        return;
+    }
+
+    router.put(
+        `/companies/${companyId}/tasks/${task.id}`,
+        {
+            name: task.name,
+            description: task.description,
+            task_type: task.taskType,
+            priority: task.priority,
+            status: checked ? 'Completed' : 'Open',
+            due_date: task.dueDate,
+            assigned_to: task.assignedTo?.id ?? null,
+            store_id: task.store?.id ?? null,
+            contact_id: task.contact?.id ?? null,
+        },
+        {
+            preserveScroll: true,
+            preserveState: true,
+        },
+    );
 }
 
 function formatDueDate(value: string | null): string {
@@ -248,78 +305,261 @@ function formatDueDate(value: string | null): string {
             </Dialog>
         </div>
 
-        <div class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            <Card
-                v-for="task in company.tasks"
-                :key="task.id"
-                class="rounded-2xl border border-slate-200 shadow-sm transition hover:shadow-md dark:border-slate-800"
-            >
-                <CardHeader>
-                    <div class="flex w-full items-start justify-between gap-4">
-                        <div class="space-y-2">
-                            <CardTitle
-                                class="text-base font-semibold text-slate-900 dark:text-slate-100"
-                            >
-                                {{ task.name }}
-                            </CardTitle>
-                            <div
-                                class="flex flex-wrap gap-2 text-xs text-slate-500"
-                            >
-                                <span>{{ task.taskType }}</span>
-                                <span>·</span>
-                                <span>{{ task.priority }}</span>
-                                <span>·</span>
-                                <span>{{ task.status }}</span>
-                            </div>
-                        </div>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger as-child>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    class="text-slate-500 hover:text-slate-700"
-                                    aria-label="Task actions"
-                                >
-                                    <MoreVertical class="h-4 w-4" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem @click="openTaskEdit(task)">
-                                    Edit
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                    class="text-red-600 focus:text-red-600"
-                                    @click="deleteTask(company.id, task)"
-                                >
-                                    Delete
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </div>
-                </CardHeader>
-                <CardContent class="space-y-2 text-sm text-slate-600">
-                    <p v-if="task.description">{{ task.description }}</p>
-                    <p class="text-xs text-slate-500">
-                        Due: {{ formatDueDate(task.dueDate) }}
-                    </p>
-                    <p class="text-xs text-slate-500">
-                        Assigned: {{ task.assignedTo?.name || 'Unassigned' }}
-                    </p>
-                    <p class="text-xs text-slate-500">
-                        Store: {{ task.store?.name || 'None' }}
-                    </p>
-                    <p class="text-xs text-slate-500">
-                        Contact: {{ task.contact?.name || 'None' }}
-                    </p>
-                </CardContent>
-            </Card>
+        <div class="mt-6 space-y-6">
+            <div class="grid gap-4 md:grid-cols-3">
+                <Card
+                    v-for="summary in prioritySummary"
+                    :key="summary.label"
+                    class="border-border/70"
+                >
+                    <CardHeader class="space-y-2">
+                        <CardTitle class="text-base">
+                            {{ summary.label }} Priority
+                        </CardTitle>
+                        <p class="text-3xl font-semibold tracking-tight">
+                            {{ summary.count }}
+                        </p>
+                    </CardHeader>
+                </Card>
+            </div>
 
-            <p
-                v-if="company.tasks.length === 0"
-                class="text-xs text-muted-foreground"
-            >
-                No tasks yet.
-            </p>
+            <div class="space-y-6">
+                <Card v-for="priority in priorityOrder" :key="priority">
+                    <CardHeader
+                        class="flex flex-row items-center justify-between"
+                    >
+                        <CardTitle>{{ priority }} Priority</CardTitle>
+                        <Badge variant="secondary">
+                            {{ activeTasksByPriority[priority].length }}
+                        </Badge>
+                    </CardHeader>
+                    <CardContent class="p-0">
+                        <div
+                            v-if="activeTasksByPriority[priority].length === 0"
+                            class="px-6 py-10 text-center text-sm text-muted-foreground"
+                        >
+                            No {{ priority.toLowerCase() }} priority tasks for
+                            this company.
+                        </div>
+
+                        <div v-else class="overflow-x-auto">
+                            <table class="min-w-full text-sm">
+                                <thead
+                                    class="bg-muted/40 text-left text-muted-foreground"
+                                >
+                                    <tr>
+                                        <th class="px-6 py-3 font-medium">
+                                            Task
+                                        </th>
+                                        <th class="px-6 py-3 font-medium">
+                                            Type
+                                        </th>
+                                        <th class="px-6 py-3 font-medium">
+                                            Status
+                                        </th>
+                                        <th class="px-6 py-3 font-medium">
+                                            Assignee
+                                        </th>
+                                        <th class="px-6 py-3 font-medium">
+                                            Store
+                                        </th>
+                                        <th class="px-6 py-3 font-medium">
+                                            Contact
+                                        </th>
+                                        <th class="px-6 py-3 font-medium">
+                                            Due Date
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr
+                                        v-for="task in activeTasksByPriority[
+                                            priority
+                                        ]"
+                                        :key="task.id"
+                                        class="cursor-pointer border-t border-border/60 transition hover:bg-muted/30"
+                                        @click="openTaskEdit(task)"
+                                    >
+                                        <td class="px-6 py-4 align-top">
+                                            <div class="flex items-start gap-3">
+                                                <div @click.stop>
+                                                    <Checkbox
+                                                        :model-value="
+                                                            task.status ===
+                                                            'Completed'
+                                                        "
+                                                        @update:model-value="
+                                                            toggleTaskComplete(
+                                                                company.id,
+                                                                task,
+                                                                $event,
+                                                            )
+                                                        "
+                                                    />
+                                                </div>
+                                                <div class="space-y-1">
+                                                    <div class="font-medium">
+                                                        {{ task.name }}
+                                                    </div>
+                                                    <p
+                                                        v-if="task.description"
+                                                        class="text-muted-foreground"
+                                                    >
+                                                        {{ task.description }}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 align-top">
+                                            {{ task.taskType }}
+                                        </td>
+                                        <td class="px-6 py-4 align-top">
+                                            {{ task.status }}
+                                        </td>
+                                        <td class="px-6 py-4 align-top">
+                                            {{
+                                                task.assignedTo?.name ||
+                                                'Unassigned'
+                                            }}
+                                        </td>
+                                        <td class="px-6 py-4 align-top">
+                                            {{ task.store?.name || 'None' }}
+                                        </td>
+                                        <td class="px-6 py-4 align-top">
+                                            {{ task.contact?.name || 'None' }}
+                                        </td>
+                                        <td
+                                            class="px-6 py-4 align-top text-muted-foreground"
+                                        >
+                                            {{ formatDueDate(task.dueDate) }}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card v-if="hasNoTasks">
+                    <CardContent
+                        class="py-12 text-center text-sm text-muted-foreground"
+                    >
+                        This company does not have any tasks yet.
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader
+                        class="flex flex-row items-center justify-between"
+                    >
+                        <CardTitle>Completed</CardTitle>
+                        <Badge variant="secondary">
+                            {{ completedTasks.length }}
+                        </Badge>
+                    </CardHeader>
+                    <CardContent class="p-0">
+                        <div
+                            v-if="completedTasks.length === 0"
+                            class="px-6 py-10 text-center text-sm text-muted-foreground"
+                        >
+                            No completed tasks yet.
+                        </div>
+
+                        <div v-else class="overflow-x-auto">
+                            <table class="min-w-full text-sm">
+                                <thead
+                                    class="bg-muted/40 text-left text-muted-foreground"
+                                >
+                                    <tr>
+                                        <th class="px-6 py-3 font-medium">
+                                            Task
+                                        </th>
+                                        <th class="px-6 py-3 font-medium">
+                                            Type
+                                        </th>
+                                        <th class="px-6 py-3 font-medium">
+                                            Status
+                                        </th>
+                                        <th class="px-6 py-3 font-medium">
+                                            Assignee
+                                        </th>
+                                        <th class="px-6 py-3 font-medium">
+                                            Store
+                                        </th>
+                                        <th class="px-6 py-3 font-medium">
+                                            Contact
+                                        </th>
+                                        <th class="px-6 py-3 font-medium">
+                                            Due Date
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr
+                                        v-for="task in completedTasks"
+                                        :key="task.id"
+                                        class="cursor-pointer border-t border-border/60 transition hover:bg-muted/30"
+                                        @click="openTaskEdit(task)"
+                                    >
+                                        <td class="px-6 py-4 align-top">
+                                            <div class="flex items-start gap-3">
+                                                <div @click.stop>
+                                                    <Checkbox
+                                                        :model-value="true"
+                                                        @update:model-value="
+                                                            toggleTaskComplete(
+                                                                company.id,
+                                                                task,
+                                                                $event,
+                                                            )
+                                                        "
+                                                    />
+                                                </div>
+                                                <div class="space-y-1">
+                                                    <div
+                                                        class="font-medium text-muted-foreground line-through"
+                                                    >
+                                                        {{ task.name }}
+                                                    </div>
+                                                    <p
+                                                        v-if="task.description"
+                                                        class="text-muted-foreground"
+                                                    >
+                                                        {{ task.description }}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 align-top">
+                                            {{ task.taskType }}
+                                        </td>
+                                        <td class="px-6 py-4 align-top">
+                                            {{ task.status }}
+                                        </td>
+                                        <td class="px-6 py-4 align-top">
+                                            {{
+                                                task.assignedTo?.name ||
+                                                'Unassigned'
+                                            }}
+                                        </td>
+                                        <td class="px-6 py-4 align-top">
+                                            {{ task.store?.name || 'None' }}
+                                        </td>
+                                        <td class="px-6 py-4 align-top">
+                                            {{ task.contact?.name || 'None' }}
+                                        </td>
+                                        <td
+                                            class="px-6 py-4 align-top text-muted-foreground"
+                                        >
+                                            {{ formatDueDate(task.dueDate) }}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
         </div>
 
         <Dialog v-model:open="isTaskEditOpen">
@@ -489,7 +729,14 @@ function formatDueDate(value: string | null): string {
                         </select>
                         <InputError :message="errors.contact_id" />
                     </Field>
-                    <DialogFooter class="col-span-2">
+                    <DialogFooter class="col-span-2 justify-between">
+                        <Button
+                            type="button"
+                            variant="destructive"
+                            @click="deleteTask(company.id, editingTask)"
+                        >
+                            Delete Task
+                        </Button>
                         <Button :disabled="processing">Save</Button>
                     </DialogFooter>
                 </Form>

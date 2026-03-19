@@ -1,11 +1,7 @@
 <script setup lang="ts">
-import { Form, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
-import { MoreVertical, Star, Phone, Mail, Linkedin } from 'lucide-vue-next';
+import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Field, FieldLabel } from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
 import {
     Dialog,
     DialogContent,
@@ -21,8 +17,12 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import InputError from '@/components/InputError.vue';
+import { Field, FieldLabel } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
 import type { Company, Contact } from '@/pages/Company/types';
+import { Form, router } from '@inertiajs/vue3';
+import { Linkedin, Mail, MoreVertical, Phone, Star } from 'lucide-vue-next';
+import { ref } from 'vue';
 
 defineProps<{
     company: Company;
@@ -91,11 +91,15 @@ function deleteContact(companyId: number, contact: Contact): void {
                             <Input id="contact_phone" name="phone" />
                         </Field>
                         <Field class="col-span-2">
-                            <FieldLabel for="contact_position">Position</FieldLabel>
+                            <FieldLabel for="contact_position"
+                                >Position</FieldLabel
+                            >
                             <Input id="contact_position" name="position" />
                         </Field>
                         <Field class="col-span-2">
-                            <FieldLabel for="contact_linkedin">LinkedIn</FieldLabel>
+                            <FieldLabel for="contact_linkedin"
+                                >LinkedIn</FieldLabel
+                            >
                             <Input id="contact_linkedin" name="linkedin_link" />
                         </Field>
                         <Field class="col-span-2">
@@ -119,12 +123,14 @@ function deleteContact(companyId: number, contact: Contact): void {
             <Card
                 v-for="contact in company.contacts"
                 :key="contact.id"
-                class="rounded-2xl gap-2 text-xs border border-slate-200 shadow-sm transition hover:shadow-md dark:border-slate-800"
+                class="gap-2 rounded-2xl border border-slate-200 text-xs shadow-sm transition hover:shadow-md dark:border-slate-800"
             >
                 <CardHeader class="text-xs">
                     <div class="flex w-full items-center justify-between gap-4">
                         <div class="flex items-center gap-3">
-                            <CardTitle class="text-base font-semibold text-slate-900 dark:text-slate-100">
+                            <CardTitle
+                                class="text-base font-semibold text-slate-900 dark:text-slate-100"
+                            >
                                 {{ contact.name }}
                             </CardTitle>
                             <Star
@@ -145,7 +151,9 @@ function deleteContact(companyId: number, contact: Contact): void {
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                                <DropdownMenuItem @click="openContactEdit(contact)">
+                                <DropdownMenuItem
+                                    @click="openContactEdit(contact)"
+                                >
                                     Edit
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
@@ -166,16 +174,25 @@ function deleteContact(companyId: number, contact: Contact): void {
                         {{ contact.position }}
                     </span>
                     <div class="space-y-2 text-xs text-slate-600">
-                        <div v-if="contact.phone" class="flex items-center gap-3">
+                        <div
+                            v-if="contact.phone"
+                            class="flex items-center gap-3"
+                        >
                             <Phone class="h-3 w-3 text-slate-500" />
                             <span>{{ contact.phone }}</span>
                         </div>
-                        <div v-if="contact.email" class="flex items-center gap-3">
+                        <div
+                            v-if="contact.email"
+                            class="flex items-center gap-3"
+                        >
                             <Mail class="h-3 w-3 text-slate-500" />
                             <span>{{ contact.email }}</span>
                         </div>
-                        <div v-if="contact.linkedinLink" class="flex items-center gap-3">
-                            <Linkedin class="h-5 w-5 text-slate-500" />
+                        <div
+                            v-if="contact.linkedinLink"
+                            class="flex items-center gap-3"
+                        >
+                            <Linkedin class="h-3 w-3 shrink-0 text-slate-500" />
                             <span>LinkedIn</span>
                         </div>
                     </div>
@@ -231,7 +248,9 @@ function deleteContact(companyId: number, contact: Contact): void {
                         />
                     </Field>
                     <Field class="col-span-2">
-                        <FieldLabel for="contact_edit_position">Position</FieldLabel>
+                        <FieldLabel for="contact_edit_position"
+                            >Position</FieldLabel
+                        >
                         <Input
                             id="contact_edit_position"
                             name="position"
@@ -239,7 +258,9 @@ function deleteContact(companyId: number, contact: Contact): void {
                         />
                     </Field>
                     <Field class="col-span-2">
-                        <FieldLabel for="contact_edit_linkedin">LinkedIn</FieldLabel>
+                        <FieldLabel for="contact_edit_linkedin"
+                            >LinkedIn</FieldLabel
+                        >
                         <Input
                             id="contact_edit_linkedin"
                             name="linkedin_link"
